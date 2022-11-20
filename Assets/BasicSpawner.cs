@@ -77,6 +77,8 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
             Scene = SceneManager.GetActiveScene().buildIndex,
             SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
         });
+
+        FindObjectOfType<GameLogic>().enabled = true;
     }
 
 }
