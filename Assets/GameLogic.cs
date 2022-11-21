@@ -72,6 +72,7 @@ public class GameLogic : NetworkBehaviour
 
     private void StartGame()
     {
+        Debug.Log($"StartGame IsServer: {Runner.IsServer}");
         if (!Runner.IsServer) return;
 
         State = GameState.GameStarted;
@@ -91,6 +92,7 @@ public class GameLogic : NetworkBehaviour
         foreach (var x in cards)
         {
             Cards.Set(i, x);
+            i++;
         }
 
         Debug.Log($"{_cards.powerRepo.AvailablePowers.Count} powers left: {string.Join(',', _cards.powerRepo.AvailablePowers.Select(x => x.Name))}");
