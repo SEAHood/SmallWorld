@@ -80,6 +80,7 @@ public class GameLogic : NetworkBehaviour
         _players = Runner.ActivePlayers.ToList();
         GeneratePlayerTurnOrder();
         GenerateCards();
+        TestTokens();
     }
 
     private void GenerateCards()
@@ -93,6 +94,17 @@ public class GameLogic : NetworkBehaviour
         }
 
         Debug.Log($"{_cards.powerRepo.AvailablePowers.Count} powers left: {string.Join(',', _cards.powerRepo.AvailablePowers.Select(x => x.Name))}");
+    }
+
+    private void TestTokens() 
+    {
+
+        foreach (var x in _players)
+        {
+            var quantity = Random.Range(1,10);
+            GetPlayerBehaviour(x).Tokens.Add("ratmen", quantity);
+         
+        }
     }
 
     private void GeneratePlayerTurnOrder()
