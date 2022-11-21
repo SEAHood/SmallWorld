@@ -17,9 +17,7 @@ public class GameLogic : NetworkBehaviour
     [Networked] public GameState State { get; set; }
     [Networked] public int Turn { get; set; }
     [Networked] public int PlayerTurn { get; set; } // A players turn within a game turn
-
-    // TODO Can't serialise cards for some reason
-    //[Networked] [Capacity(6)] public NetworkArray<Card> Cards { get; set; }
+    [Networked, Capacity(6)] public NetworkArray<Card> Cards => default;
 
     private List<PlayerRef> _players { get; set; }
     private Dictionary<int, PlayerRef> _playerTurnOrder { get; set; }
@@ -69,25 +67,6 @@ public class GameLogic : NetworkBehaviour
                 GetPlayerBehaviour(currentPlayer).IsTurnActive = true;
                 _lastPlayerTurn = PlayerTurn;
             }
-
-
-            /*if (lastInvoked + interval < Time.fixedTime)
-            {
-                foreach (var player in Runner.ActivePlayers)
-                {
-                    var obj = Runner.GetPlayerObject(player);
-                    obj.GetComponent<PlayerBehaviour>().IsTurnActive = false;
-                }
-                var playerIndex = lastPlayerTurnIndex + 1;
-                if (playerIndex > Runner.ActivePlayers.Count())
-                    playerIndex = 0;
-                lastPlayerTurnIndex = playerIndex;
-                Runner.GetPlayerObject(Runner.ActivePlayers.ElementAt(playerIndex)).GetComponent<PlayerBehaviour>().IsTurnActive = true;
-
-                State = (GameState)Random.Range(0, 3);
-                lastInvoked = Time.fixedTime;
-            }*/
-
         }
     }
 
@@ -107,11 +86,13 @@ public class GameLogic : NetworkBehaviour
     {
         var cards = _cards.GetCards(6);
         Debug.Log(string.Join(',', cards.Select(x => $"{x.Power.Name} {x.Race.Name}")));
+        var i = 0;
         foreach (var x in cards)
         {
-            Debug.Log($"{x.Power.Name} {x.Race.Name}");
+            Cards.Set(i, x);
         }
-        //Debug.Log($"{_cards.powerRepo.AvailablePowers.Count} powers left: {string.Join(',', _cards.powerRepo.AvailablePowers.Select(x => x.Name))}");
+
+        Debug.Log($"{_cards.powerRepo.AvailablePowers.Count} powers left: {string.Join(',', _cards.powerRepo.AvailablePowers.Select(x => x.Name))}");
     }
 
     private void GeneratePlayerTurnOrder()

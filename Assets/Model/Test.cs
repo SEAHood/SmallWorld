@@ -2,9 +2,8 @@
 
 namespace Assets.Model
 {
-    public struct Power : INetworkStruct
+    public struct Test : INetworkStruct
     {
         public NetworkString<_16> Name { get; set; }
-        public int RaceTokens { get; set; }
     }
 }

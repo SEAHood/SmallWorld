@@ -1,6 +1,8 @@
-﻿namespace Assets.Model
+﻿using Fusion;
+
+namespace Assets.Model
 {
-    public class Card
+    public struct Card : INetworkStruct
     {
         public Power Power { get; set; }
         public Race Race { get; set; }
