@@ -10,8 +10,8 @@ public class MapArea : MonoBehaviour
         Mountain,
         Swamp,
         Forest,
-        Grassland,
-        Prarie
+        Hills,
+        Farm
     }
 
     public List<MapArea> AdjacentAreas;
@@ -24,7 +24,7 @@ public class MapArea : MonoBehaviour
         switch (Biome)
         {
             case AreaBiome.Sea:
-                _color = Color.cyan;
+                _color = Color.magenta;
                 break;
             case AreaBiome.Mountain:
                 _color = Color.gray;
@@ -35,10 +35,10 @@ public class MapArea : MonoBehaviour
             case AreaBiome.Forest:
                 _color = Color.green;
                 break;
-            case AreaBiome.Grassland:
+            case AreaBiome.Hills:
                 _color = new Color(25f / 255f, 0, 100f/255f);
                 break;
-            case AreaBiome.Prarie:
+            case AreaBiome.Farm:
                 _color = Color.yellow;
                 break;
             default:
@@ -54,8 +54,13 @@ public class MapArea : MonoBehaviour
         GetComponent<SpriteRenderer>().color = new Color(_color.r, _color.g, _color.b, 0.5f);
         foreach (var area in AdjacentAreas)
         {
-            //area.GetComponent<SpriteRenderer>().color = Color.yellow;
+            area.GetComponent<SpriteRenderer>().color = Color.yellow;
         }
+    }
+
+    void OnMouseDown()
+    {
+        Debug.Log($"{Biome} Clicked!");
     }
 
     void OnMouseExit()
