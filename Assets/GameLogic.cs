@@ -18,6 +18,9 @@ public class GameLogic : NetworkBehaviour
     [Networked] public int Turn { get; set; }
     [Networked] public int PlayerTurn { get; set; } // A players turn within a game turn
     [Networked, Capacity(6)] public NetworkArray<Card> Cards => default;
+    [Networked] public int PlayerCount { get; set; }
+
+    public bool IsNetworkActive => Runner != null;
 
     private List<PlayerRef> _players { get; set; }
     private Dictionary<int, PlayerRef> _playerTurnOrder { get; set; }
@@ -42,22 +45,19 @@ public class GameLogic : NetworkBehaviour
         //State = GameState.PlayersJoining;
     }
     
-    private void OnGUI()
+    public void StartGame()
     {
         if (Runner != null && Runner.IsServer)
         {
-            if (GUI.Button(new Rect(0, 40, 200, 40), "Start Game"))
-            {
-                StartGame();
-            }
+            InitialiseGame();
         }
     }
 
     public override void FixedUpdateNetwork()
     {
-        if (Runner.IsServer)
+        /*if (Runner.IsServer)
         {
-            /*if (_lastPlayerTurn != PlayerTurn)
+            if (_lastPlayerTurn != PlayerTurn)
             {
                 foreach (var player in _players)
                 {
@@ -66,22 +66,22 @@ public class GameLogic : NetworkBehaviour
                 var currentPlayer = _playerTurnOrder[PlayerTurn];
                 GetPlayerBehaviour(currentPlayer).IsTurnActive = true;
                 _lastPlayerTurn = PlayerTurn;
-            }*/
-        }
+            }
+        }*/
     }
 
-    private void StartGame()
+    private void InitialiseGame()
     {
         Debug.Log($"StartGame IsServer: {Runner.IsServer}");
         if (!Runner.IsServer) return;
-
-        State = GameState.GameStarted;
+        PlayerCount = Runner.ActivePlayers.Count();
         Turn = 1;
         PlayerTurn = 1;
         _players = Runner.ActivePlayers.ToList();
         GeneratePlayerTurnOrder();
         GenerateCards();
         TestTokens();
+        State = GameState.GameStarted;
     }
 
     private void GenerateCards()

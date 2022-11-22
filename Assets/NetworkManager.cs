@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
+public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
 {
     public void OnInput(NetworkRunner runner, NetworkInput input) { }
     public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
@@ -22,6 +22,8 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
     public void OnSceneLoadDone(NetworkRunner runner) { }
     public void OnSceneLoadStart(NetworkRunner runner) { }
 
+    public UiManager UiManager;
+
     private NetworkRunner _runner;
     [SerializeField] private NetworkPrefabRef _playerPrefab;
     private Dictionary<PlayerRef, NetworkObject> _spawnedCharacters = new Dictionary<PlayerRef, NetworkObject>();
@@ -36,6 +38,7 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
             // Keep track of the player avatars so we can remove it when they disconnect
             _spawnedCharacters.Add(player, networkPlayerObject);
         }
+        InformUi();
     }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
@@ -46,25 +49,22 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
             runner.Despawn(networkObject);
             _spawnedCharacters.Remove(player);
         }
+        InformUi();
     }
 
-    private void OnGUI()
+    public void HostGame()
     {
-        if (_runner == null)
-        {
-            if (GUI.Button(new Rect(0, 0, 200, 40), "Host"))
-            {
-                StartGame(GameMode.Host);
-            }
-            if (GUI.Button(new Rect(0, 40, 200, 40), "Join"))
-            {
-                StartGame(GameMode.Client);
-            }
-        }
+        StartGame(GameMode.Host);
+    }
+
+    public void JoinGame()
+    {
+        StartGame(GameMode.Client);
     }
 
     async void StartGame(GameMode mode)
     {
+        Debug.Log("Start Game entered!");
         // Create the Fusion runner and let it know that we will be providing user input
         _runner = gameObject.AddComponent<NetworkRunner>();
         _runner.ProvideInput = true;
@@ -79,6 +79,12 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         });
 
         FindObjectOfType<GameLogic>().enabled = true;
+        UiManager.GoToLobby(mode == GameMode.Host);
+    }
+
+    private void InformUi()
+    {
+        UiManager.InformPlayerChange();
     }
 
 }

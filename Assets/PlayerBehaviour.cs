@@ -1,4 +1,5 @@
 using Fusion;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +9,7 @@ using UnityEngine.UI;
 
 public class PlayerBehaviour : NetworkBehaviour
 {
+    [Networked] public NetworkString<_16> Name { get; set; }
     [Networked] public bool IsTurnActive { get; set; }
     [Networked, Capacity(2)] public NetworkDictionary<NetworkString<_16>, int> Tokens => default; 
 
@@ -18,6 +20,7 @@ public class PlayerBehaviour : NetworkBehaviour
     {
         TurnText = GetComponent<TextMeshPro>();
         TurnText.enabled = HasInputAuthority;
+        Name = Guid.NewGuid().ToString().Substring(0, 5);
     }
 
     // Update is called once per frame
@@ -26,11 +29,11 @@ public class PlayerBehaviour : NetworkBehaviour
         if (HasInputAuthority)
         {
             TurnText.text = IsTurnActive ? "Your Turn" : "";
-            foreach(var x in Tokens)
+            /*foreach(var x in Tokens)
             {
                 Debug.Log($"Token: {x.Key}, {x.Value}");
-            }
-            Debug.Log($"Cards: {string.Join(", ", FindObjectOfType<GameLogic>().Cards.Select(x => $"{x.Power.Name} {x.Race.Name}"))}");
+            }*/
+            //Debug.Log($"Cards: {string.Join(", ", FindObjectOfType<GameLogic>().Cards.Select(x => $"{x.Power.Name} {x.Race.Name}"))}");
         }
     }
 }

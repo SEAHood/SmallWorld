@@ -93,7 +93,7 @@
     <Compile Include="Assets\PlayerBehaviour.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\SpawnPoints\SpawnPointManagerPrototype.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\SpawnPoints\ISpawnPointManagerPrototypeT.cs" />
-    <Compile Include="Assets\BasicSpawner.cs" />
+    <Compile Include="Assets\NetworkManager.cs" />
     <Compile Include="Assets\Model\Test.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\FusionRuntimeCheck.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\Materials\FusionPrototypeMaterials.cs" />
@@ -102,6 +102,7 @@
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\NetworkDebugStartGUI.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\FusionStats\FusionStatsUtilities.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\Prefabs\FusionPrototypingPrefabs.cs" />
+    <Compile Include="Assets\Model\Token.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Utilities\BoundsTools.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\NetworkSceneManagerDefault.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\NetworkDebugStart.cs" />
@@ -113,7 +114,9 @@
     <Compile Include="Assets\MapArea.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\ControllerPrototype.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\FusionGraph.cs" />
-    <Compile Include="Assets\Model\Token.cs" />
+    <Compile Include="Assets\UI\MainMenuUi.cs" />
+    <Compile Include="Assets\UI\UiManager.cs" />
+    <Compile Include="Assets\UI\LobbyUi.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
