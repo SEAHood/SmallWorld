@@ -24,7 +24,7 @@ public class MapArea : MonoBehaviour
         switch (Biome)
         {
             case AreaBiome.Sea:
-                _color = Color.magenta;
+                _color = Color.cyan;
                 break;
             case AreaBiome.Mountain:
                 _color = Color.gray;
@@ -36,7 +36,7 @@ public class MapArea : MonoBehaviour
                 _color = Color.green;
                 break;
             case AreaBiome.Hills:
-                _color = new Color(25f / 255f, 0, 100f/255f);
+                _color = Color.red;
                 break;
             case AreaBiome.Farm:
                 _color = Color.yellow;
@@ -54,7 +54,7 @@ public class MapArea : MonoBehaviour
         GetComponent<SpriteRenderer>().color = new Color(_color.r, _color.g, _color.b, 0.5f);
         foreach (var area in AdjacentAreas)
         {
-            area.GetComponent<SpriteRenderer>().color = Color.yellow;
+            area.GetComponent<SpriteRenderer>().color = Color.white;
         }
     }
 

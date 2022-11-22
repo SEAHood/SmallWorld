@@ -39,7 +39,7 @@ public class GameLogic : NetworkBehaviour
     private void Awake()
     {
         //_map = GameObject.Find("Map");
-        State = GameState.PlayersJoining;
+        //State = GameState.PlayersJoining;
     }
     
     private void OnGUI()
@@ -57,7 +57,7 @@ public class GameLogic : NetworkBehaviour
     {
         if (Runner.IsServer)
         {
-            if (_lastPlayerTurn != PlayerTurn)
+            /*if (_lastPlayerTurn != PlayerTurn)
             {
                 foreach (var player in _players)
                 {
@@ -66,7 +66,7 @@ public class GameLogic : NetworkBehaviour
                 var currentPlayer = _playerTurnOrder[PlayerTurn];
                 GetPlayerBehaviour(currentPlayer).IsTurnActive = true;
                 _lastPlayerTurn = PlayerTurn;
-            }
+            }*/
         }
     }
 
@@ -89,9 +89,9 @@ public class GameLogic : NetworkBehaviour
         var cards = _cards.GetCards(6);
         Debug.Log(string.Join(',', cards.Select(x => $"{x.Power.Name} {x.Race.Name}")));
         var i = 0;
-        foreach (var x in cards)
+        foreach (var card in cards)
         {
-            Cards.Set(i, x);
+            Cards.Set(i, card);
             i++;
         }
 
@@ -101,10 +101,10 @@ public class GameLogic : NetworkBehaviour
     private void TestTokens() 
     {
 
-        foreach (var x in _players)
+        foreach (var player in _players)
         {
             var quantity = Random.Range(1,10);
-            GetPlayerBehaviour(x).Tokens.Add("ratmen", quantity);
+            GetPlayerBehaviour(player).Tokens.Add("ratmen", quantity);
          
         }
     }

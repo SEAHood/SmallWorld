@@ -343,7 +343,7 @@ MonoBehaviour:
   - {fileID: 158364502}
   - {fileID: 1211774925}
   - {fileID: 2010886405}
-  Biome: 6
+  Biome: 5
 --- !u!1 &158364498 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 672372709163661038, guid: 9b47653abce5dd24790458429802d31f, type: 3}
@@ -434,7 +434,7 @@ MonoBehaviour:
   - {fileID: 135622875}
   - {fileID: 217589686}
   - {fileID: 1566424984}
-  Biome: 4
+  Biome: 3
 --- !u!1 &205068275 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -5380829346527401167, guid: 9b47653abce5dd24790458429802d31f, type: 3}
@@ -533,7 +533,7 @@ MonoBehaviour:
   - {fileID: 738013129}
   - {fileID: 1662017888}
   - {fileID: 2146953514}
-  Biome: 6
+  Biome: 5
 --- !u!1 &217589682 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -6844752812065744939, guid: 9b47653abce5dd24790458429802d31f, type: 3}
@@ -640,7 +640,7 @@ MonoBehaviour:
   - {fileID: 1566424984}
   - {fileID: 2045116083}
   - {fileID: 738013129}
-  Biome: 5
+  Biome: 4
 --- !u!1 &346024170
 GameObject:
   m_ObjectHideFlags: 0
@@ -950,7 +950,7 @@ MonoBehaviour:
   - {fileID: 205068279}
   - {fileID: 2146953514}
   - {fileID: 833104302}
-  Biome: 4
+  Biome: 3
 --- !u!1 &738013125 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -8066022287772547013, guid: 9b47653abce5dd24790458429802d31f, type: 3}
@@ -1041,7 +1041,7 @@ MonoBehaviour:
   - {fileID: 217589686}
   - {fileID: 2045116083}
   - {fileID: 1803767113}
-  Biome: 3
+  Biome: 2
 --- !u!1 &793275698 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -9167676107962611606, guid: 9b47653abce5dd24790458429802d31f, type: 3}
@@ -1140,7 +1140,7 @@ MonoBehaviour:
   - {fileID: 1106950801}
   - {fileID: 1706926894}
   - {fileID: 948232034}
-  Biome: 5
+  Biome: 4
 --- !u!1 &833104298 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8368852390922794906, guid: 9b47653abce5dd24790458429802d31f, type: 3}
@@ -1231,7 +1231,7 @@ MonoBehaviour:
   - {fileID: 1824752058}
   - {fileID: 674616365}
   - {fileID: 2146953514}
-  Biome: 5
+  Biome: 4
 --- !u!1 &925214221
 GameObject:
   m_ObjectHideFlags: 0
@@ -1407,7 +1407,7 @@ MonoBehaviour:
   - {fileID: 2040510209}
   - {fileID: 793275702}
   - {fileID: 1706926894}
-  Biome: 6
+  Biome: 5
 --- !u!1 &1106950797 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -4649460619617107846, guid: 9b47653abce5dd24790458429802d31f, type: 3}
@@ -1588,7 +1588,7 @@ MonoBehaviour:
   - {fileID: 2010886405}
   - {fileID: 135622875}
   - {fileID: 158364502}
-  Biome: 5
+  Biome: 4
 --- !u!1001 &1234724663
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1922,7 +1922,7 @@ MonoBehaviour:
   - {fileID: 217589686}
   - {fileID: 2045116083}
   - {fileID: 1803767113}
-  Biome: 2
+  Biome: 1
 --- !u!1 &1641239815 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4003688858737460742, guid: 9b47653abce5dd24790458429802d31f, type: 3}
@@ -2073,7 +2073,7 @@ MonoBehaviour:
   - {fileID: 2146953514}
   - {fileID: 205068279}
   - {fileID: 738013129}
-  Biome: 2
+  Biome: 1
 --- !u!1 &1706926890 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8522768727791504511, guid: 9b47653abce5dd24790458429802d31f, type: 3}
@@ -2171,7 +2171,7 @@ MonoBehaviour:
   - {fileID: 1106950801}
   - {fileID: 1773867656}
   - {fileID: 2010886405}
-  Biome: 4
+  Biome: 3
 --- !u!1 &1773867651 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 9122337076977537832, guid: 9b47653abce5dd24790458429802d31f, type: 3}
@@ -2268,7 +2268,7 @@ MonoBehaviour:
   - {fileID: 135622875}
   - {fileID: 2010886405}
   - {fileID: 1706926894}
-  Biome: 2
+  Biome: 1
 --- !u!1 &1803767109 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -2960319734654220514, guid: 9b47653abce5dd24790458429802d31f, type: 3}
@@ -2446,7 +2446,7 @@ MonoBehaviour:
   - {fileID: 674616365}
   - {fileID: 833104302}
   - {fileID: 2101061199}
-  Biome: 6
+  Biome: 5
 --- !u!1 &2010886401 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3504377820616191119, guid: 9b47653abce5dd24790458429802d31f, type: 3}
@@ -2539,7 +2539,7 @@ MonoBehaviour:
   - {fileID: 1773867656}
   - {fileID: 135622875}
   - {fileID: 1211774925}
-  Biome: 3
+  Biome: 2
 --- !u!1 &2040510205 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -8935628842953584484, guid: 9b47653abce5dd24790458429802d31f, type: 3}
@@ -2649,7 +2649,7 @@ MonoBehaviour:
   - {fileID: 948232034}
   - {fileID: 793275702}
   - {fileID: 1824752058}
-  Biome: 2
+  Biome: 1
 --- !u!1 &2045116079 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2083720646965661967, guid: 9b47653abce5dd24790458429802d31f, type: 3}
@@ -2737,7 +2737,7 @@ MonoBehaviour:
   - {fileID: 217589686}
   - {fileID: 1566424984}
   - {fileID: 1803767113}
-  Biome: 4
+  Biome: 3
 --- !u!1 &2101061195 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8971361415726626561, guid: 9b47653abce5dd24790458429802d31f, type: 3}
@@ -2813,7 +2813,7 @@ MonoBehaviour:
   AdjacentAreas:
   - {fileID: 1824752058}
   - {fileID: 833104302}
-  Biome: 3
+  Biome: 2
 --- !u!1 &2146953510 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2327653080463624959, guid: 9b47653abce5dd24790458429802d31f, type: 3}
@@ -2900,4 +2900,4 @@ MonoBehaviour:
   - {fileID: 674616365}
   - {fileID: 205068279}
   - {fileID: 1662017888}
-  Biome: 3
+  Biome: 2
