@@ -70,11 +70,13 @@
     <Compile Include="Assets\Photon\Fusion\Scripts\FusionUnityLogger.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\Assistants\FusionSceneSetupAssistants.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\Utilities\FusionPrototypingAssetUtils.cs" />
+    <Compile Include="Assets\UI\LobbyUi.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\SpawnPoints\PlayerSpawnPointPrototype.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\AreaOfInterest\PlayerAOIPrototype.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\Materials\FusionPrototypingTextures.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\FusionStats.cs" />
     <Compile Include="Assets\MapBehaviour.cs" />
+    <Compile Include="Assets\UI\MainMenuUi.cs" />
     <Compile Include="Assets\GameLogic.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Utilities\FusionEditorUtilitiesExternal.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\FusionBurstIntegration.cs" />
@@ -85,6 +87,7 @@
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\NetworkRunnerExtensions.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\FusionStats\FusionStatsObjectIds.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Utilities\NetworkProjectUtilities.cs" />
+    <Compile Include="Assets\UI\GameUi.cs" />
     <Compile Include="Assets\Photon\PhotonLibs\WebSocket\WebSocket.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\SpawnPoints\SpawnerPrototypeT.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\NetworkSceneManagerBase.cs" />
@@ -103,6 +106,9 @@
     <Compile Include="Assets\Photon\Fusion\Scripts\FusionStats\FusionStatsUtilities.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\Prefabs\FusionPrototypingPrefabs.cs" />
     <Compile Include="Assets\Model\Token.cs" />
+    <Compile Include="Assets\Helper\Utility.cs" />
+    <Compile Include="Assets\UI\UiManager.cs" />
+    <Compile Include="Assets\UI\ComboPanelUi.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Utilities\BoundsTools.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\NetworkSceneManagerDefault.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\NetworkDebugStart.cs" />
@@ -114,9 +120,6 @@
     <Compile Include="Assets\MapArea.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\ControllerPrototype.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\FusionGraph.cs" />
-    <Compile Include="Assets\UI\MainMenuUi.cs" />
-    <Compile Include="Assets\UI\UiManager.cs" />
-    <Compile Include="Assets\UI\LobbyUi.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

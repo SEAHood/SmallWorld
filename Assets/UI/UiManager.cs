@@ -18,7 +18,7 @@ public class UiManager : MonoBehaviour
     public GameLogic GameLogic;
     private GameLogic.GameState _lastGameState;
 
-    //private ActiveUi UiState;
+    private ActiveUi UiState;
 
     void Awake()
     {
@@ -32,7 +32,15 @@ public class UiManager : MonoBehaviour
         if (GameLogic.State == GameLogic.GameState.GameStarted && _lastGameState != GameLogic.GameState.GameStarted)
         {
             GoToGame(GameLogic.PlayerCount);
-            _lastGameState = GameLogic.GameState.GameStarted;
+        }
+        _lastGameState = GameLogic.State;
+    }
+
+    public void RefreshUi()
+    {
+        foreach (var gameUi in FindObjectsOfType<GameUi>())
+        {
+            gameUi.RefreshUi();
         }
     }
 
@@ -51,6 +59,10 @@ public class UiManager : MonoBehaviour
     {
         Debug.Log($"GoToGame({playerCount})");
         SetActiveUi(ActiveUi.Game, playerCount);
+        if (playerCount == 1 || playerCount == 2 || playerCount == 3)
+            RectLayoutUi.GetComponent<GameUi>().Initialise();
+        else if (playerCount == 4 || playerCount == 5)
+            SquareLayoutUi.GetComponent<GameUi>().Initialise();
     }
 
     private void SetActiveUi(ActiveUi targetState, int playerCount = 0)
@@ -74,7 +86,14 @@ public class UiManager : MonoBehaviour
                 SquareLayoutUi.gameObject.SetActive(playerCount == 4 || playerCount == 5);
                 break;
         }
+
+        UiState = targetState;
     }
+
+    /*private GameObject GetGameBoard(int playerCount)
+    {
+
+    }*/
 
     public void InformPlayerChange()
     {

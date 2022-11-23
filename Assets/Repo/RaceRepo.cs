@@ -48,20 +48,20 @@ namespace Assets.Repo
 
         private List<Race> AllRaces = new List<Race>
         {
-            new Race { Name = "Amazons", RaceTokens = 6 },
-            new Race { Name = "Dwarves", RaceTokens = 3 },
-            new Race { Name = "Elves", RaceTokens = 6 },
-            new Race { Name = "Ghouls", RaceTokens = 5 },
-            new Race { Name = "Giants", RaceTokens = 6 },
-            new Race { Name = "Halflings", RaceTokens = 6 },
-            new Race { Name = "Humans", RaceTokens = 5 },
-            new Race { Name = "Orcs", RaceTokens = 5 },
-            new Race { Name = "Ratmen", RaceTokens = 8 },
-            new Race { Name = "Skeletons", RaceTokens = 6 },
-            new Race { Name = "Sorcerers", RaceTokens = 5 },
-            new Race { Name = "Tritons", RaceTokens = 6 },
-            new Race { Name = "Trolls", RaceTokens = 5 },
-            new Race { Name = "Wizards", RaceTokens = 5 },
+            new Race { Name = "Amazon", Tokens = 6 },
+            new Race { Name = "Dwarve", Tokens = 3 },
+            new Race { Name = "Elf", Tokens = 6 },
+            new Race { Name = "Ghoul", Tokens = 5 },
+            new Race { Name = "Giant", Tokens = 6 },
+            new Race { Name = "Halfling", Tokens = 6 },
+            new Race { Name = "Human", Tokens = 5 },
+            new Race { Name = "Orc", Tokens = 5 },
+            new Race { Name = "Ratmen", Tokens = 8 },
+            new Race { Name = "Skeleton", Tokens = 6 },
+            new Race { Name = "Sorcerer", Tokens = 5 },
+            new Race { Name = "Triton", Tokens = 6 },
+            new Race { Name = "Troll", Tokens = 5 },
+            new Race { Name = "Wizard", Tokens = 5 },
         };
 
 }

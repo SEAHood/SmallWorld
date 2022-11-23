@@ -1,3 +1,4 @@
+using Assets.Helper;
 using Assets.Model;
 using Assets.Repo;
 using Fusion;
@@ -17,7 +18,8 @@ public class GameLogic : NetworkBehaviour
     [Networked] public GameState State { get; set; }
     [Networked] public int Turn { get; set; }
     [Networked] public int PlayerTurn { get; set; } // A players turn within a game turn
-    [Networked, Capacity(6)] public NetworkArray<Card> Cards => default;
+    //[Networked, Capacity(6)] public NetworkArray<Card> Cards => default;
+    [Networked(OnChanged = nameof(UiUpdateRequired)), Capacity(6)] public NetworkDictionary<NetworkString<_128>, Card> Cards => default;
     [Networked] public int PlayerCount { get; set; }
 
     public bool IsNetworkActive => Runner != null;
@@ -44,7 +46,31 @@ public class GameLogic : NetworkBehaviour
         //_map = GameObject.Find("Map");
         //State = GameState.PlayersJoining;
     }
-    
+
+    [Rpc]
+    internal void RPC_ClaimCombo(PlayerBehaviour playerBehaviour, Card combo)
+    {
+        Debug.Log("RPC_ClaimCombo hit");
+        if (!playerBehaviour.HasCombo && IsPlayerTurn(playerBehaviour.Id.ToString()))
+        {
+            Debug.Log("Serverside verification OK");
+            Debug.Log($"Serverside combos: {string.Join(", ", Cards.Select(x => x.Key))}");
+            Debug.Log($"Requested combo: {combo.Id}");
+
+            var comboExists = Cards.TryGet(combo.Id.ToString(), out var serverCombo);
+            if (!comboExists) return;
+            Debug.Log("Combo exists");
+
+            Cards.Remove(combo.Id.ToString());
+            playerBehaviour.ActiveCombo = combo;
+            playerBehaviour.HasCombo = true;
+            playerBehaviour.Tokens.Add(combo.Race.Name, combo.TotalTokens);
+
+            var newCard = _cards.GetCards(1)[0];
+            Cards.Add(newCard.Id, newCard);
+        }
+    }
+
     public void StartGame()
     {
         if (Runner != null && Runner.IsServer)
@@ -55,19 +81,6 @@ public class GameLogic : NetworkBehaviour
 
     public override void FixedUpdateNetwork()
     {
-        /*if (Runner.IsServer)
-        {
-            if (_lastPlayerTurn != PlayerTurn)
-            {
-                foreach (var player in _players)
-                {
-                    GetPlayerBehaviour(player).IsTurnActive = false;
-                }
-                var currentPlayer = _playerTurnOrder[PlayerTurn];
-                GetPlayerBehaviour(currentPlayer).IsTurnActive = true;
-                _lastPlayerTurn = PlayerTurn;
-            }
-        }*/
     }
 
     private void InitialiseGame()
@@ -80,7 +93,6 @@ public class GameLogic : NetworkBehaviour
         _players = Runner.ActivePlayers.ToList();
         GeneratePlayerTurnOrder();
         GenerateCards();
-        TestTokens();
         State = GameState.GameStarted;
     }
 
@@ -91,22 +103,11 @@ public class GameLogic : NetworkBehaviour
         var i = 0;
         foreach (var card in cards)
         {
-            Cards.Set(i, card);
+            Cards.Add(card.Id.ToString(), card);
             i++;
         }
 
         Debug.Log($"{_cards.powerRepo.AvailablePowers.Count} powers left: {string.Join(',', _cards.powerRepo.AvailablePowers.Select(x => x.Name))}");
-    }
-
-    private void TestTokens() 
-    {
-
-        foreach (var player in _players)
-        {
-            var quantity = Random.Range(1,10);
-            GetPlayerBehaviour(player).Tokens.Add("ratmen", quantity);
-         
-        }
     }
 
     private void GeneratePlayerTurnOrder()
@@ -134,5 +135,17 @@ public class GameLogic : NetworkBehaviour
     {
         var obj = Runner.GetPlayerObject(player);
         return obj.GetComponent<PlayerBehaviour>();
+    }
+
+    public bool IsPlayerTurn(string id)
+    {
+        var playerTurn = _playerTurnOrder[PlayerTurn];
+        var player = GetPlayerBehaviour(playerTurn);
+        return player.Id == id;
+    }
+
+    private static void UiUpdateRequired(Changed<GameLogic> changed)
+    {
+        Utility.UiUpdateRequired();
     }
 }

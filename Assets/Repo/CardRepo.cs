@@ -1,4 +1,5 @@
 ﻿using Assets.Model;
+using System;
 using System.Collections.Generic;
 
 namespace Assets.Repo
@@ -24,8 +25,11 @@ namespace Assets.Repo
             {
                 cards.Add(new Card 
                 { 
+                    Id = Guid.NewGuid().ToString(),
                     Power = powers[i], 
-                    Race = races[i] 
+                    Race = races[i],
+                    Claimed = false,
+                    VictoryCoinsPlaced = 0
                 });
             }
 

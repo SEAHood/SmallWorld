@@ -1,39 +1,57 @@
+using Assets.Helper;
+using Assets.Model;
 using Fusion;
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class PlayerBehaviour : NetworkBehaviour
 {
+    [Networked] public NetworkString<_128> Id { get; set; }
     [Networked] public NetworkString<_16> Name { get; set; }
     [Networked] public bool IsTurnActive { get; set; }
-    [Networked, Capacity(2)] public NetworkDictionary<NetworkString<_16>, int> Tokens => default; 
+    [Networked(OnChanged = nameof(UiUpdateRequired)), Capacity(2)] public NetworkDictionary<NetworkString<_16>, int> Tokens => default;
+    [Networked(OnChanged = nameof(UiUpdateRequired))] public Card ActiveCombo { get; set; }
+    [Networked]public NetworkBool HasCombo { get; set; }
 
     public TextMeshPro TurnText;
 
-    // Start is called before the first frame update
+    private GameLogic _gameLogic;
+
     void Start()
     {
+        Id = Guid.NewGuid().ToString();
         TurnText = GetComponent<TextMeshPro>();
         TurnText.enabled = HasInputAuthority;
         Name = Guid.NewGuid().ToString().Substring(0, 5);
+        _gameLogic = FindObjectOfType<GameLogic>();
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (HasInputAuthority)
         {
-            TurnText.text = IsTurnActive ? "Your Turn" : "";
-            /*foreach(var x in Tokens)
-            {
-                Debug.Log($"Token: {x.Key}, {x.Value}");
-            }*/
-            //Debug.Log($"Cards: {string.Join(", ", FindObjectOfType<GameLogic>().Cards.Select(x => $"{x.Power.Name} {x.Race.Name}"))}");
+            
         }
+    }
+
+    public bool IsLocal()
+    {
+        return HasInputAuthority;
+    }
+
+    public void TryAcquireCombo(Card combo)
+    {
+        Debug.Log($"Attempting to acquire {combo.Power.Name} {combo.Race.Name}: HasCombo({HasCombo}), IsOwnTurn({_gameLogic.IsPlayerTurn(Id.ToString())})");
+        if (!HasCombo && _gameLogic != null && _gameLogic.IsPlayerTurn(Id.ToString()))
+        {
+            Debug.Log("Clientside verification OK");
+            _gameLogic.RPC_ClaimCombo(this, combo);
+        }
+    }
+
+    private static void UiUpdateRequired(Changed<PlayerBehaviour> changed)
+    {
+        Utility.UiUpdateRequired();
     }
 }
