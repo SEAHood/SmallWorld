@@ -14,48 +14,36 @@ public class MapArea : MonoBehaviour
         Farm
     }
 
+
     public List<MapArea> AdjacentAreas;
     public AreaBiome Biome;
 
+
     private Color _color;
+
+    private SpriteRenderer _goodBorder;
+    private SpriteRenderer _badBorder;
+    private SpriteRenderer _spriteRenderer;
 
     private void Awake()
     {
-        switch (Biome)
-        {
-            case AreaBiome.Sea:
-                _color = Color.cyan;
-                break;
-            case AreaBiome.Mountain:
-                _color = Color.gray;
-                break;
-            case AreaBiome.Swamp:
-                _color = new Color(128f / 255f, 64f / 255f, 0f);
-                break;
-            case AreaBiome.Forest:
-                _color = Color.green;
-                break;
-            case AreaBiome.Hills:
-                _color = Color.red;
-                break;
-            case AreaBiome.Farm:
-                _color = Color.yellow;
-                break;
-            default:
-                _color = Color.white;
-                break;
-        }
-
-        GetComponent<SpriteRenderer>().color = _color;
+        _spriteRenderer = GetComponent<SpriteRenderer>();
+        _goodBorder = transform.Find("GoodBorder").GetComponent<SpriteRenderer>();
+        _badBorder = transform.Find("BadBorder").GetComponent<SpriteRenderer>();
+        _spriteRenderer.enabled = false;
+        _goodBorder.enabled = false;
+        _badBorder.enabled = false;
     }
 
     void OnMouseEnter()
     {
-        GetComponent<SpriteRenderer>().color = new Color(_color.r, _color.g, _color.b, 0.5f);
-        foreach (var area in AdjacentAreas)
+        _spriteRenderer.enabled = true;
+        _goodBorder.enabled = true;
+        //GetComponent<SpriteRenderer>().color = new Color(_color.r, _color.g, _color.b, 0.5f);
+        /*foreach (var area in AdjacentAreas)
         {
             area.GetComponent<SpriteRenderer>().color = Color.white;
-        }
+        }*/
     }
 
     void OnMouseDown()
@@ -65,11 +53,13 @@ public class MapArea : MonoBehaviour
 
     void OnMouseExit()
     {
-        ResetColour();
+        _spriteRenderer.enabled = false;
+        _goodBorder.enabled = false;
+        /*ResetColour();
         foreach (var area in AdjacentAreas)
         {
             area.ResetColour();
-        }
+        }*/
     }
 
     public void ResetColour()

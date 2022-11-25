@@ -14,15 +14,11 @@ public class PlayerBehaviour : NetworkBehaviour
     [Networked(OnChanged = nameof(UiUpdateRequired))] public Card ActiveCombo { get; set; }
     [Networked]public NetworkBool HasCombo { get; set; }
 
-    public TextMeshPro TurnText;
-
     private GameLogic _gameLogic;
 
     void Start()
     {
-        Id = Guid.NewGuid().ToString();
-        TurnText = GetComponent<TextMeshPro>();
-        TurnText.enabled = HasInputAuthority;
+        Id = Guid.NewGuid().ToString();        
         Name = Guid.NewGuid().ToString().Substring(0, 5);
         _gameLogic = FindObjectOfType<GameLogic>();
     }

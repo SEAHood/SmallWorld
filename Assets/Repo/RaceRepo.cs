@@ -49,7 +49,7 @@ namespace Assets.Repo
         private List<Race> AllRaces = new List<Race>
         {
             new Race { Name = "Amazon", Tokens = 6 },
-            new Race { Name = "Dwarve", Tokens = 3 },
+            new Race { Name = "Dwarf", Tokens = 3 },
             new Race { Name = "Elf", Tokens = 6 },
             new Race { Name = "Ghoul", Tokens = 5 },
             new Race { Name = "Giant", Tokens = 6 },
