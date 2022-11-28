@@ -55,6 +55,8 @@ public class GameUi : MonoBehaviour
             LocalPlayerSlot.transform.Find("Name").GetComponent<TextMeshProUGUI>().text = $"{localPlayer.Name}";
         else
             LocalPlayerSlot.transform.Find("Name").GetComponent<TextMeshProUGUI>().text = "???";
+
+        LocalPlayerSlot.GetComponent<LocalPlayerSlotUi>().Populate(localPlayer.Name.ToString(), localPlayer.ActiveCombo, localPlayer.Team);
     }
 
     private void SetOtherPlayers()
@@ -86,14 +88,30 @@ public class GameUi : MonoBehaviour
 
     private void SetPlayerTokens(PlayerBehaviour localPlayer)
     {
-        Utility.ClearTransform(Tokens);
-        var tokenStack = Instantiate(TokenStackPrefab, Tokens);
-        var sb = new StringBuilder();
+        foreach (Transform token in Tokens)
+        {
+            var tokenUi = token.GetComponent<TokenStackUi>();
+            if (localPlayer.Tokens.TryGet(tokenUi.Race, out var playerToken))
+            {
+                var playerTokenCount = playerToken.Count;
+                if (playerTokenCount > 0)
+                    tokenUi.Count = playerTokenCount;
+                else
+                    Destroy(tokenUi.gameObject);
+            }
+            else
+                Destroy(tokenUi.gameObject);
+        }
+
+        var tokenUis = Tokens.Cast<Transform>().Select(x => x.GetComponent<TokenStackUi>());
         foreach (var token in localPlayer.Tokens)
         {
-            sb.AppendLine($"{token.Value} {token.Key}");
+            if (tokenUis.Any(x => x.Race == token.Key.ToString()))
+                continue;
+
+            var tokenStack = Instantiate(TokenStackPrefab, Tokens).GetComponent<TokenStackUi>();
+            tokenStack.Populate(token.Value);
         }
-        tokenStack.GetComponent<TextMeshProUGUI>().text = sb.ToString();
     }
 
 

@@ -44,7 +44,7 @@ public class LobbyUi : MonoBehaviour
         foreach (var player in FindObjectsOfType<PlayerBehaviour>())
         {
             var playerPanel = Instantiate(PlayerPanelPrefab, Players);
-            playerPanel.transform.Find("Name").GetComponent<TextMeshProUGUI>().text = $"{player.Name}";
+            playerPanel.GetComponent<LocalPlayerSlotUi>().Populate(player.Name.ToString(), null, player.Team);
         }
     }
 }

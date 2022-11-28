@@ -59,6 +59,7 @@
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\PlayerSpawnerPrototype.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\CommonSceneObject.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\FusionStats\FusionGraphBase.cs" />
+    <Compile Include="Assets\Enum\Team.cs" />
     <Compile Include="Assets\Photon\PhotonLibs\WebSocket\SocketWebTcp.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\FusionProfiler.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\FusionStats\FusionStatsBillboard.cs" />
@@ -86,6 +87,7 @@
     <Compile Include="Assets\Model\Power.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\NetworkRunnerExtensions.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\FusionStats\FusionStatsObjectIds.cs" />
+    <Compile Include="Assets\UI\LocalPlayerSlotUi.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Utilities\NetworkProjectUtilities.cs" />
     <Compile Include="Assets\UI\GameUi.cs" />
     <Compile Include="Assets\Photon\PhotonLibs\WebSocket\WebSocket.cs" />
@@ -105,9 +107,10 @@
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\NetworkDebugStartGUI.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\FusionStats\FusionStatsUtilities.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\Prefabs\FusionPrototypingPrefabs.cs" />
-    <Compile Include="Assets\Model\Token.cs" />
+    <Compile Include="Assets\Model\TokenStack.cs" />
     <Compile Include="Assets\Helper\Utility.cs" />
     <Compile Include="Assets\UI\UiManager.cs" />
+    <Compile Include="Assets\UI\TokenStackUi.cs" />
     <Compile Include="Assets\UI\ComboPanelUi.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Utilities\BoundsTools.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\NetworkSceneManagerDefault.cs" />
@@ -120,6 +123,8 @@
     <Compile Include="Assets\MapArea.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\ControllerPrototype.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\FusionGraph.cs" />
+    <Compile Include="Assets\Helper\Spinner.cs" />
+    <Compile Include="Assets\Helper\ConflictResolver.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

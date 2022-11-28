@@ -19,9 +19,19 @@ namespace Assets.Helper
             return GameObject.FindObjectsOfType<PlayerBehaviour>().FirstOrDefault(x => x.IsLocal());
         }
 
+        public static PlayerBehaviour FindPlayerWithId(NetworkString<_128> id)
+        {
+            return GameObject.FindObjectsOfType<PlayerBehaviour>().FirstOrDefault(x => x.Id == id);
+        }
+
         public static void UiUpdateRequired()
         {
             GameObject.FindObjectOfType<UiManager>().RefreshUi();
+
+            foreach (var area in GameObject.FindObjectsOfType<MapArea>())
+            {
+                area.RefreshMapArea();
+            }
         }
     }
 }

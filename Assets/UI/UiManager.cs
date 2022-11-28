@@ -38,9 +38,12 @@ public class UiManager : MonoBehaviour
 
     public void RefreshUi()
     {
-        foreach (var gameUi in FindObjectsOfType<GameUi>())
+        if (UiState == ActiveUi.Game)
         {
-            gameUi.RefreshUi();
+            foreach (var gameUi in FindObjectsOfType<GameUi>())
+            {
+                gameUi.RefreshUi();
+            }
         }
     }
 

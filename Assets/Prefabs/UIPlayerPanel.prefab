@@ -216,6 +216,7 @@ GameObject:
   - component: {fileID: 5561027203371586554}
   - component: {fileID: 8205611821023622917}
   - component: {fileID: 8374904052902829859}
+  - component: {fileID: 1212357195627091071}
   m_Layer: 5
   m_Name: UIPlayerPanel
   m_TagString: Untagged
@@ -284,6 +285,22 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &1212357195627091071
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4493917391741167391}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ae19800273d0924db85db276d0fa599, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  NameText: {fileID: 127634856871077848}
+  ComboText: {fileID: 2832273358567752324}
+  AvatarImage: {fileID: 5488608355156148082}
+  BannerImage: {fileID: 8374904052902829859}
 --- !u!1 &6724719812636030586
 GameObject:
   m_ObjectHideFlags: 0

@@ -7,6 +7,9 @@ public class MainMenuUi : MonoBehaviour
     public Button JoinButton;
     public Button QuitButton;
 
+    public GameObject Menu;
+    public GameObject Loader;
+
     public NetworkManager NetworkManager;
 
     void Start()
@@ -18,16 +21,24 @@ public class MainMenuUi : MonoBehaviour
 
     void HostClicked()
     {
+        ShowLoader();
         NetworkManager.HostGame();
     }
 
     void JoinClicked()
     {
+        ShowLoader();
         NetworkManager.JoinGame();
     }
 
     void QuitClicked()
     {
         Application.Quit();
+    }
+
+    private void ShowLoader()
+    {
+        Menu.SetActive(false);
+        Loader.SetActive(true);
     }
 }

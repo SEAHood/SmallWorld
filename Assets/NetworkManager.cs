@@ -1,7 +1,9 @@
+using Assets.Enum;
 using Fusion;
 using Fusion.Sockets;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -35,6 +37,10 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
             // Create a unique position for the player
             NetworkObject networkPlayerObject = runner.Spawn(_playerPrefab, Vector3.zero, Quaternion.identity, player);
             runner.SetPlayerObject(player, networkPlayerObject);
+
+            var playerBehaviour = networkPlayerObject.GetComponent<PlayerBehaviour>();
+            playerBehaviour.Team = GetFreeTeam();
+
             // Keep track of the player avatars so we can remove it when they disconnect
             _spawnedCharacters.Add(player, networkPlayerObject);
         }
@@ -85,6 +91,22 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     private void InformUi()
     {
         UiManager.InformPlayerChange();
+    }
+
+    private Team GetFreeTeam()
+    {
+        var usedTeams = _spawnedCharacters.Select(x => x.Value.GetComponent<PlayerBehaviour>().Team);
+        var availableTeams = Enum.GetValues(typeof(Team)).Cast<Team>().Except(usedTeams).Where(x => x != Team.None);
+        /*foreach (var val in Enum.GetValues(typeof(Team)).Cast<Team>())
+        {
+            if (val == Team.None) continue;
+            if (usedTeams.Contains(val)) continue;
+            return val;
+        }*/
+        if (availableTeams.Any())
+            return availableTeams.ElementAt(UnityEngine.Random.Range(0, availableTeams.Count()));
+        else
+            return Team.None;
     }
 
 }

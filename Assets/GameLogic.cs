@@ -2,6 +2,7 @@ using Assets.Helper;
 using Assets.Model;
 using Assets.Repo;
 using Fusion;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,11 +19,18 @@ public class GameLogic : NetworkBehaviour
     [Networked] public GameState State { get; set; }
     [Networked] public int Turn { get; set; }
     [Networked] public int PlayerTurn { get; set; } // A players turn within a game turn
-    //[Networked, Capacity(6)] public NetworkArray<Card> Cards => default;
+
+    // This may need to be a NetworkLinkedList or NetworkArray for order to work
     [Networked(OnChanged = nameof(UiUpdateRequired)), Capacity(6)] public NetworkDictionary<NetworkString<_128>, Card> Cards => default;
+    [Networked(OnChanged = nameof(UiUpdateRequired)), Capacity(30)] public NetworkDictionary<NetworkString<_4>, MapArea> MapAreas => default;
     [Networked] public int PlayerCount { get; set; }
 
     public bool IsNetworkActive => Runner != null;
+
+    public GameObject Map2PlayerPrefab;
+    public GameObject Map3PlayerPrefab;
+    public GameObject Map4PlayerPrefab;
+    public GameObject Map5PlayerPrefab;
 
     private List<PlayerRef> _players { get; set; }
     private Dictionary<int, PlayerRef> _playerTurnOrder { get; set; }
@@ -64,10 +72,54 @@ public class GameLogic : NetworkBehaviour
             Cards.Remove(combo.Id.ToString());
             playerBehaviour.ActiveCombo = combo;
             playerBehaviour.HasCombo = true;
-            playerBehaviour.Tokens.Add(combo.Race.Name, combo.TotalTokens);
+
+            var tokenStack = new TokenStack
+            {
+                Power = combo.Power,
+                Race = combo.Race,
+                Count = combo.TotalTokens,
+                Team = playerBehaviour.Team,
+                PlayerControlled = true,
+                OwnerId = playerBehaviour.Id
+            };
+            playerBehaviour.Tokens.Add(combo.Race.Name, tokenStack);
 
             var newCard = _cards.GetCards(1)[0];
             Cards.Add(newCard.Id, newCard);
+        }
+    }
+
+    [Rpc]
+    internal void RPC_ConquerArea(PlayerBehaviour playerBehaviour, NetworkString<_4> areaId, TokenStack token)
+    {
+        Debug.Log($"[SERVER] Attempting to conquer {areaId}: HasCombo({playerBehaviour.HasCombo}), IsOwnTurn({IsPlayerTurn(Id.ToString())})");
+        var tokenKey = token.Race.Name.ToString();
+        if (playerBehaviour.HasCombo && 
+            IsPlayerTurn(playerBehaviour.Id.ToString()) && 
+            playerBehaviour.Tokens.TryGet(tokenKey, out var playerToken))
+        {
+            var mapArea = MapAreas.Get(areaId);
+            var tokensForSuccess = ConflictResolver.TokensForConquest(playerToken, mapArea);
+
+            if (playerToken.Count < tokensForSuccess)
+                return;
+
+            playerToken.Count = playerToken.Count - tokensForSuccess;
+            playerBehaviour.Tokens.Set(tokenKey, playerToken);
+
+            mapArea.OccupyingForce = new TokenStack
+            {
+                Count = tokensForSuccess,
+                PlayerControlled = true,
+                Power = playerBehaviour.ActiveCombo.Power,
+                Race = playerToken.Race,
+                Team = playerBehaviour.Team                  
+            };
+            mapArea.IsOccupied = true;
+            MapAreas.Set(areaId, mapArea);
+
+            if (playerToken.Count <= 0)
+                playerBehaviour.Tokens.Remove(tokenKey);
         }
     }
 
@@ -93,6 +145,7 @@ public class GameLogic : NetworkBehaviour
         _players = Runner.ActivePlayers.ToList();
         GeneratePlayerTurnOrder();
         GenerateCards();
+        SpawnMap();
         State = GameState.GameStarted;
     }
 
@@ -117,7 +170,7 @@ public class GameLogic : NetworkBehaviour
         var nums = Enumerable.Range(0, _players.Count).ToArray();
         for (var i = 0; i < nums.Length; ++i)
         {
-            var randomIndex = Random.Range(0, nums.Length);
+            var randomIndex = UnityEngine.Random.Range(0, nums.Length);
             var temp = nums[randomIndex];
             nums[randomIndex] = nums[i];
             nums[i] = temp;
@@ -128,6 +181,19 @@ public class GameLogic : NetworkBehaviour
         {
             _playerTurnOrder.Add(playerTurn, _players[i]);
             playerTurn++;
+        }
+    }
+
+    private void SpawnMap()
+    {
+        Debug.Log("Spawning map");
+        NetworkObject networkMap = Runner.Spawn(Map2PlayerPrefab);
+        var i = 0;
+        foreach (var area in networkMap.GetComponentsInChildren<MapArea>())
+        {
+            area.Id = $"{i}_{Guid.NewGuid().ToString().Replace("-", "").Substring(6)}"; ;
+            MapAreas.Add(area.Id, area);
+            i++;
         }
     }
 
