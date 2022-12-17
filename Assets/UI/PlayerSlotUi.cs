@@ -6,7 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class LocalPlayerSlotUi : MonoBehaviour
+public class PlayerSlotUi : MonoBehaviour
 {
     public TextMeshProUGUI NameText;
     public TextMeshProUGUI ComboText;
@@ -16,7 +16,7 @@ public class LocalPlayerSlotUi : MonoBehaviour
     public void Populate(string name, Card? combo, Team team)
     {
         NameText.text = name;
-        ComboText.text = combo.HasValue ? $"{combo}" : "nout lol";
+        ComboText.text = combo.HasValue ? $"{combo}" : "";
         AvatarImage.sprite = Resources.Load<Sprite>($"Avatars/Avatar{team}");
         BannerImage.sprite = Resources.Load<Sprite>($"Avatars/Banner{team}");
     }

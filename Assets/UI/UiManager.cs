@@ -28,10 +28,10 @@ public class UiManager : MonoBehaviour
     void Update()
     {
         if (!GameLogic.IsNetworkActive) return;
-
+        
         if (GameLogic.State == GameLogic.GameState.GameStarted && _lastGameState != GameLogic.GameState.GameStarted)
         {
-            GoToGame(GameLogic.PlayerCount);
+            GoToGame(GameLogic.GetPlayerCount());
         }
         _lastGameState = GameLogic.State;
     }
@@ -77,10 +77,14 @@ public class UiManager : MonoBehaviour
             case ActiveUi.MainMenu:
                 LobbyUi.gameObject.SetActive(false);
                 MainMenuUi.gameObject.SetActive(true);
+                RectLayoutUi.gameObject.SetActive(false);
+                SquareLayoutUi.gameObject.SetActive(false);
                 break;
             case ActiveUi.Lobby:
                 MainMenuUi.gameObject.SetActive(false);
                 LobbyUi.gameObject.SetActive(true);
+                RectLayoutUi.gameObject.SetActive(false);
+                SquareLayoutUi.gameObject.SetActive(false);
                 break;
             case ActiveUi.Game:
                 MainMenuUi.gameObject.SetActive(false);

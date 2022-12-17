@@ -9,8 +9,9 @@ namespace Assets.Model
         public Race Race { get; set; }
         public int Count { get; set; }
         public Team Team { get; set; }
-        public bool PlayerControlled { get; set; }
+        public bool Interactable { get; set; }
         public NetworkString<_128> OwnerId { get; set; }
+        public bool InPlay { get; set; }
         
         // TODO Player reference?
     }

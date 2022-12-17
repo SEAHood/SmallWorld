@@ -49,7 +49,7 @@ public class MapArea : NetworkBehaviour, IPointerEnterHandler, IPointerExitHandl
         GetComponent<Image>().alphaHitTestMinimumThreshold = 0.1f;
 
         _tokenPosition = transform.Find("TokenPosition");
-        _tokenPosition.localScale = new Vector3(1.7f, 1.7f, 1.7f);
+        _tokenPosition.localScale = new Vector3(1.9f, 1.9f, 1.9f);
 
         _highlight.enabled = false;
         _goodBorder.enabled = false;
@@ -67,23 +67,27 @@ public class MapArea : NetworkBehaviour, IPointerEnterHandler, IPointerExitHandl
         if (_instantiatedToken == null)
             _instantiatedToken = Instantiate(TokenStackPrefab, _tokenPosition).GetComponent<TokenStackUi>();
 
-        if (IsOccupied)
+        if (Runner != null)
         {
-            _instantiatedToken.Populate(OccupyingForce);
-        }
-        else if (HasLostTribe)
-        {
-            Utility.ClearTransform(_tokenPosition);
-            var token = new TokenStack
+            if (IsOccupied)
             {
-                Race = new Race { Name = "LostTribe" },
-                Count = 1,
-                PlayerControlled = false,
-                Team = Team.None,
-                OwnerId = null
-            };
-            _instantiatedToken.Populate(token);
-            OccupyingForce = token;
+                _instantiatedToken.Populate(OccupyingForce);
+            }
+            else if (HasLostTribe)
+            {
+                //Utility.ClearTransform(_tokenPosition);
+                var token = new TokenStack
+                {
+                    Race = new Race { Name = "LostTribe" },
+                    Count = 1,
+                    Interactable = false,
+                    Team = Team.None,
+                    OwnerId = null
+                };
+                _instantiatedToken.Populate(token);
+                OccupyingForce = token;
+                IsOccupied = true;
+            }
         }
     }
 
@@ -96,9 +100,9 @@ public class MapArea : NetworkBehaviour, IPointerEnterHandler, IPointerExitHandl
     {
         var player = Utility.FindLocalPlayer();
         var tokens = player.ActiveTokenStack;
-        if (tokens == null || tokens.Value.Count <= 0)
+        if (tokens == null || tokens.Value.Count <= 0 || FindObjectOfType<GameLogic>().TurnStage == GameLogic.TurnState.Redeploy)
         {
-            // No tokens in use, just highlight
+            // No tokens in use or in redeploy, just highlight
             _highlight.enabled = true;
         }
         else
@@ -126,6 +130,6 @@ public class MapArea : NetworkBehaviour, IPointerEnterHandler, IPointerExitHandl
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        Utility.FindLocalPlayer().TryConquerMapArea(this);
+        Utility.FindLocalPlayer().TryAffectMapArea(this);
     }
 }

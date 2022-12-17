@@ -32,14 +32,20 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
 
     private Vector3 _originalPosition;
     private bool _attachedToMouse;
+    private bool _active;
 
     void Start()
     {
         _originalPosition = transform.position;
+        MainToken.enabled = false;
+        TeamTag.enabled = false;
+        CountPanel.SetActive(false);
+        Stack.gameObject.SetActive(false);
     }
 
     void FixedUpdate()
     {
+        if (!_active) return;
         if (Race != _lastRace || Count != _lastCount || Team != _lastTeam)
             Refresh();
 
@@ -76,18 +82,14 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
 
     private void UpdateMainToken()
     {
+        MainToken.enabled = true;
         MainToken.sprite = Resources.Load<Sprite>($"Tokens/{Race}Token");
     }
 
     private void UpdateCountText()
     {
-        if (Count == 1)
-            CountPanel.SetActive(false);
-        else
-        {
-            CountPanel.SetActive(true);
-            CountText.text = Count.ToString();
-        }
+        CountPanel.SetActive(true);
+        CountText.text = Count.ToString();
     }
 
     private void UpdateTeamTag()
@@ -103,6 +105,7 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
 
     private void UpdateStack()
     {
+        Stack.gameObject.SetActive(true);
         Utility.ClearTransform(Stack);
         var stackHeight = Count <= 4 ? Count : 4;
         for (var i = 0; i < stackHeight - 1; i++)
@@ -121,12 +124,10 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
         var yOff = 0f;
         foreach (Transform t in Stack)
         {
-            Debug.Log($"Offsetting stack item by {xOff},{yOff}");
             t.localPosition = new Vector3(xOff, yOff, 0f);
             xOff += 4f;
             yOff -= 4f;
         }
-        Debug.Log($"Offsetting main item by {xOff},{yOff}");
         MainToken.transform.localPosition = new Vector3(xOff, yOff, 0f);
     }
 
@@ -136,8 +137,7 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
 
         if (eventData.pointerId == -1)
         {
-            _attachedToMouse = true;
-            GetComponent<Image>().raycastTarget = false;
+            AttachToMouse();
             Owner.ActiveTokenStack = Token;
         }
     }
@@ -146,9 +146,22 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
     {
         Race = token.Race.Name.ToString();
         Count = token.Count;
-        Interactable = token.PlayerControlled;
+        Interactable = token.Interactable;
         Team = token.Team;
         Owner = Utility.FindPlayerWithId(token.OwnerId);
         Token = token;
+
+        MainToken.enabled = true;
+        TeamTag.enabled = true;
+        CountPanel.SetActive(true);
+        Stack.gameObject.SetActive(true);
+        _active = true;
+        Refresh();
+    }
+
+    public void AttachToMouse()
+    {
+        _attachedToMouse = true;
+        GetComponent<Image>().raycastTarget = false;
     }
 }

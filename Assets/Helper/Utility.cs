@@ -1,4 +1,6 @@
 ﻿using Fusion;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -22,6 +24,11 @@ namespace Assets.Helper
         public static PlayerBehaviour FindPlayerWithId(NetworkString<_128> id)
         {
             return GameObject.FindObjectsOfType<PlayerBehaviour>().FirstOrDefault(x => x.Id == id);
+        }
+
+        public static List<PlayerBehaviour> FindOtherPlayers()
+        {
+            return GameObject.FindObjectsOfType<PlayerBehaviour>().Where(x => !x.IsLocal()).ToList();
         }
 
         public static void UiUpdateRequired()

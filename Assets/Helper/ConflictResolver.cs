@@ -11,7 +11,7 @@ namespace Assets.Helper
     {
         public static int TokensForConquest(TokenStack playerTokens, MapArea mapArea)
         {
-            return 1;
+            return 2;
         }
     }
 }
