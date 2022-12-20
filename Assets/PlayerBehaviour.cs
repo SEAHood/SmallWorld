@@ -14,8 +14,10 @@ public class PlayerBehaviour : NetworkBehaviour
     [Networked] public Team Team { get; set; }
     //[Networked] public bool IsTurnActive { get; set; }
     [Networked(OnChanged = nameof(UiUpdateRequired)), Capacity(2)] public NetworkDictionary<NetworkString<_16>, TokenStack> Tokens => default;
-    [Networked(OnChanged = nameof(UiUpdateRequired))] public Card ActiveCombo { get; set; }
+    [Networked(OnChanged = nameof(UiUpdateRequired))] public Combo ActiveCombo { get; set; }
     [Networked] public NetworkBool HasCombo { get; set; }
+    [Networked] public int Coins { get; set; }
+    [Networked] public bool HasTokensInPlay { get; set; }
     public TokenStack? ActiveTokenStack { get; set; }
 
     private GameLogic _gameLogic;
@@ -41,7 +43,7 @@ public class PlayerBehaviour : NetworkBehaviour
         return HasInputAuthority;
     }
 
-    public void TryAcquireCombo(Card combo)
+    public void TryAcquireCombo(Combo combo)
     {
         Debug.Log($"Attempting to acquire {combo.Power.Name} {combo.Race.Name}: HasCombo({HasCombo}), IsOwnTurn({_gameLogic.IsPlayerTurn(Id.ToString())})");
         if (!HasCombo && IsOwnTurn())

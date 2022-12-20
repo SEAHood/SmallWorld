@@ -1,10 +1,8 @@
 using Assets.Helper;
 using Assets.Model;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -23,6 +21,7 @@ public class GameUi : MonoBehaviour
     public Button ActionButton;
     public Transform AvailableCombos;
     public Transform Tokens;
+    public TextMeshProUGUI CoinsText;
 
     public GameObject PlayerSlotPrefab;
     public GameObject ComboPrefab;
@@ -69,6 +68,7 @@ public class GameUi : MonoBehaviour
             LocalPlayerSlot.transform.Find("Name").GetComponent<TextMeshProUGUI>().text = "???";*/
 
         LocalPlayerSlot.GetComponent<PlayerSlotUi>().Populate(localPlayer.Name.ToString(), localPlayer.ActiveCombo, localPlayer.Team);
+        CoinsText.text = localPlayer.Coins.ToString();
     }
 
     private void SetOtherPlayers()
@@ -150,11 +150,41 @@ public class GameUi : MonoBehaviour
     private void SetAvailableCombos()
     {
         Utility.ClearTransform(AvailableCombos);
-        foreach (var comboKv in GameLogic.Cards)
+        foreach (var combo in GameLogic.Combos)
         {
-            var combo = comboKv.Value;
             var comboPanel = Instantiate(ComboPrefab, AvailableCombos);
             comboPanel.GetComponent<ComboPanelUi>().Populate(combo);
+        }
+    }
+
+    public void ApplyTempComboCoins(ComboPanelUi comboPanelUi)
+    {
+        var combos = AvailableCombos.GetComponentsInChildren<ComboPanelUi>();
+
+        var selectedComboReached = false;
+        foreach (var combo in combos)
+        {
+            if (combo == comboPanelUi)
+                selectedComboReached = true;
+
+            var activeCombo = combo.Combo;
+            activeCombo.CoinsPlaced = GameLogic.Combos.First(x => x.Id == activeCombo.Id).CoinsPlaced;
+            if (!selectedComboReached)
+                activeCombo.CoinsPlaced += 1;
+
+            combo.Populate(activeCombo);
+        }
+    }
+
+    public void RemoveTempComboCoins()
+    {
+        var combos = AvailableCombos.GetComponentsInChildren<ComboPanelUi>();
+        foreach (var combo in combos)
+        {
+            var activeCombo = combo.Combo;
+            activeCombo.CoinsPlaced = GameLogic.Combos.First(x => x.Id == activeCombo.Id).CoinsPlaced;
+
+            combo.Populate(activeCombo);
         }
     }
 

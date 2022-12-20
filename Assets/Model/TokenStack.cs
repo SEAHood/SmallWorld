@@ -12,7 +12,5 @@ namespace Assets.Model
         public bool Interactable { get; set; }
         public NetworkString<_128> OwnerId { get; set; }
         public bool InPlay { get; set; }
-        
-        // TODO Player reference?
     }
 }

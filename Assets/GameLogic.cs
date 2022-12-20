@@ -22,14 +22,12 @@ public class GameLogic : NetworkBehaviour
         Redeploy
     }
 
-    [Networked(OnChanged = nameof(UiUpdateRequired))] public GameState State { get; set; }
-    [Networked(OnChanged = nameof(UiUpdateRequired))] public int Turn { get; set; }
+    [Networked(OnChanged = nameof(UiUpdateRequired))] public GameState State { get; set; } // Current state of the game
+    [Networked(OnChanged = nameof(UiUpdateRequired))] public int Turn { get; set; } // Turn index (points to _playerTurnOrder)
     [Networked(OnChanged = nameof(UiUpdateRequired))] public TurnState TurnStage { get; set; }
     [Networked(OnChanged = nameof(UiUpdateRequired))] public int PlayerTurn { get; set; } // A players turn within a game turn
     [Networked] public NetworkString<_128> PlayerTurnId { get; set; } // A players turn within a game turn
-
-    // This may need to be a NetworkLinkedList or NetworkArray for order to work
-    [Networked(OnChanged = nameof(UiUpdateRequired)), Capacity(6)] public NetworkDictionary<NetworkString<_128>, Card> Cards => default;
+    [Networked(OnChanged = nameof(UiUpdateRequired)), Capacity(6)] public NetworkArray<Combo> Combos => default;
     [Networked(OnChanged = nameof(UiUpdateRequired)), Capacity(30)] public NetworkDictionary<NetworkString<_4>, MapArea> MapAreas => default;
     [Networked] public int PlayerCount { get; set; }
 
@@ -44,56 +42,54 @@ public class GameLogic : NetworkBehaviour
     private Dictionary<int, PlayerRef> _playerTurnOrder { get; set; }
 
     // Cards
-    private CardRepo _cards = new CardRepo();
+    private ComboRepo _combos = new ComboRepo();
 
-/*
-    private GameObject _map;
-
-    private float lastInvoked;
-    private float interval = 1f;
-    private int lastPlayerTurnIndex;
-*/
-
-    // Vars for FixedNetworkUpdate - monitors turn changes and controls who's turn it is
-    private int _lastPlayerTurn { get; set; }
-
-    private void Awake()
-    {
-        //_map = GameObject.Find("Map");
-        //State = GameState.PlayersJoining;
-    }
-
+    #region RPC
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-    internal void RPC_ClaimCombo(PlayerBehaviour playerBehaviour, Card combo)
+    internal void RPC_ClaimCombo(PlayerBehaviour playerBehaviour, Combo combo)
     {
         Debug.Log("RPC_ClaimCombo hit");
         if (!playerBehaviour.HasCombo && IsPlayerTurn(playerBehaviour.Id.ToString()))
         {
             Debug.Log("Serverside verification OK");
-            Debug.Log($"Serverside combos: {string.Join(", ", Cards.Select(x => x.Key))}");
+            Debug.Log($"Serverside combos: {string.Join(", ", Combos)}");
             Debug.Log($"Requested combo: {combo.Id}");
 
-            var comboExists = Cards.TryGet(combo.Id.ToString(), out var serverCombo);
-            if (!comboExists) return;
+            var serverCombo = Combos.FirstOrDefault(x => x.Id == combo.Id.ToString());
+            var comboIndex = Combos.IndexOf(serverCombo);
+            if (comboIndex == -1) return;
             Debug.Log("Combo exists");
 
-            Cards.Remove(combo.Id.ToString());
-            playerBehaviour.ActiveCombo = combo;
+            // Apply coins to existing combos
+            var i = 0;
+            foreach (var existingCombo in Combos)
+            {
+                if (existingCombo.Id == combo.Id)
+                    break;
+
+                var c = existingCombo;
+                c.CoinsPlaced++;
+                Combos.Set(i, c);
+                i++;
+            }
+
+            serverCombo.Claimed = true;
+            Combos.Set(comboIndex, serverCombo);
+            playerBehaviour.ActiveCombo = serverCombo;
             playerBehaviour.HasCombo = true;
 
             var tokenStack = new TokenStack
             {
-                Power = combo.Power,
-                Race = combo.Race,
-                Count = combo.TotalTokens,
+                Power = serverCombo.Power,
+                Race = serverCombo.Race,
+                Count = serverCombo.TotalTokens,
                 Team = playerBehaviour.Team,
                 Interactable = true,
                 OwnerId = playerBehaviour.Id
             };
-            playerBehaviour.Tokens.Add(combo.Race.Name, tokenStack);
+            playerBehaviour.Tokens.Add(serverCombo.Race.Name, tokenStack);
 
-            var newCard = _cards.GetCards(1)[0];
-            Cards.Add(newCard.Id, newCard);
+            RefillCombos();
         }
     }
 
@@ -107,47 +103,7 @@ public class GameLogic : NetworkBehaviour
             if (TurnStage == TurnState.Conquer)
             {
                 TurnStage = TurnState.Redeploy;
-                var mapAreas = MapAreas.Where(x => x.Value.OccupyingForce.OwnerId == playerBehaviour.Id);
-                var redeployTokens = new Dictionary<NetworkString<_16>, TokenStack>();
-                foreach (var area in mapAreas)
-                {
-                    var occupyingForce = area.Value.OccupyingForce;
-                    if (redeployTokens.TryGetValue(occupyingForce.Race.Name, out var tokens))
-                    {
-                        tokens.Count += occupyingForce.Count - 1;
-                        redeployTokens[occupyingForce.Race.Name] = tokens;
-                    }
-                    else
-                    {
-                        var newTokens = new TokenStack
-                        {
-                            Count = occupyingForce.Count - 1,
-                            Race = occupyingForce.Race,
-                            Interactable = true,
-                            OwnerId = occupyingForce.OwnerId,
-                            Power = occupyingForce.Power,
-                            Team = occupyingForce.Team
-                        };
-                        redeployTokens[area.Value.OccupyingForce.Race.Name] = newTokens;
-                    }
-
-                    occupyingForce.Count = 1;
-                    area.Value.OccupyingForce = occupyingForce;
-                    MapAreas.Set(area.Key, area.Value);
-                }
-
-                foreach (var token in redeployTokens)
-                {
-                    if (playerBehaviour.Tokens.TryGet(token.Key, out var tokens))
-                    {
-                        tokens.Count += token.Value.Count;
-                        playerBehaviour.Tokens.Set(token.Key, tokens);
-                    }
-                    else
-                    {
-                        playerBehaviour.Tokens.Add(token.Key, token.Value);
-                    }
-                }
+                UndeployPlayerTokens(playerBehaviour);
             }
             else if (TurnStage == TurnState.Redeploy)
             {
@@ -206,8 +162,9 @@ public class GameLogic : NetworkBehaviour
         {
             var mapArea = MapAreas.Get(areaId);
             var tokensForSuccess = ConflictResolver.TokensForConquest(playerToken, mapArea);
+            var validAreaToConquer = AreaResolver.CanUseArea(playerBehaviour, mapArea);
 
-            if (playerToken.Count < tokensForSuccess)
+            if (playerToken.Count < tokensForSuccess || !validAreaToConquer)
                 return;
 
             playerToken.Count = playerToken.Count - tokensForSuccess;
@@ -229,6 +186,7 @@ public class GameLogic : NetworkBehaviour
             if (playerToken.Count <= 0)
                 playerBehaviour.Tokens.Remove(tokenKey);
 
+            playerBehaviour.HasTokensInPlay = true;
             playerBehaviour.RPC_RefreshActiveTokenStack();
         }
     }
@@ -258,6 +216,7 @@ public class GameLogic : NetworkBehaviour
             playerBehaviour.RPC_RefreshActiveTokenStack();
         }
     }
+    #endregion
 
     public void StartGame()
     {
@@ -267,10 +226,6 @@ public class GameLogic : NetworkBehaviour
         }
     }
 
-    public override void FixedUpdateNetwork()
-    {
-    }
-
     private void InitialiseGame()
     {
         Debug.Log($"StartGame IsServer: {Runner.IsServer}");
@@ -278,6 +233,7 @@ public class GameLogic : NetworkBehaviour
         PlayerCount = Runner.ActivePlayers.Count();
         Turn = 0;
         _players = Runner.ActivePlayers.ToList();
+        DistributeCoins(7);
         GeneratePlayerTurnOrder();
         GenerateCards();
         SpawnMap();
@@ -286,18 +242,26 @@ public class GameLogic : NetworkBehaviour
         Utility.UiUpdateRequired();
     }
 
+    private void DistributeCoins(int amount)
+    {
+        foreach (var player in _players)
+        {
+            GetPlayerBehaviour(player).Coins = amount;
+        }
+    }
+
     private void GenerateCards()
     {
-        var cards = _cards.GetCards(6);
-        Debug.Log(string.Join(',', cards.Select(x => $"{x.Power.Name} {x.Race.Name}")));
+        var combos = _combos.GetCombos(6);
+        Debug.Log($"[SERVER] Generated combos: {string.Join(',', combos.Select(x => $"{x.Power.Name} {x.Race.Name}"))}");
         var i = 0;
-        foreach (var card in cards)
+        foreach (var combo in combos)
         {
-            Cards.Add(card.Id.ToString(), card);
+            Combos.Set(i, combo);
             i++;
         }
 
-        Debug.Log($"{_cards.powerRepo.AvailablePowers.Count} powers left: {string.Join(',', _cards.powerRepo.AvailablePowers.Select(x => x.Name))}");
+        Debug.Log($"{_combos.powerRepo.AvailablePowers.Count} powers left: {string.Join(',', _combos.powerRepo.AvailablePowers.Select(x => x.Name))}");
     }
 
     private void GeneratePlayerTurnOrder()
@@ -355,9 +319,75 @@ public class GameLogic : NetworkBehaviour
         TurnStage = TurnState.Conquer;
         var playerTurn = _playerTurnOrder[PlayerTurn];
         var player = GetPlayerBehaviour(playerTurn);
+        UndeployPlayerTokens(player);
         PlayerTurnId = player.Id;
         Debug.Log($"[SERVER] Player turn order: {string.Join(", ", _playerTurnOrder.Keys)}");
         Debug.Log($"[SERVER] Incremented player turn to {PlayerTurn} ({PlayerTurnId}) - {TurnStage}");
+    }
+
+    // Takes all but one (per map area) of a players deployed tokens and returns them to their hand
+    private void UndeployPlayerTokens(PlayerBehaviour playerBehaviour)
+    {
+        var mapAreas = MapAreas.Where(x => x.Value.OccupyingForce.OwnerId == playerBehaviour.Id);
+        var redeployTokens = new Dictionary<NetworkString<_16>, TokenStack>();
+        foreach (var area in mapAreas)
+        {
+            var occupyingForce = area.Value.OccupyingForce;
+            if (redeployTokens.TryGetValue(occupyingForce.Race.Name, out var tokens))
+            {
+                tokens.Count += occupyingForce.Count - 1;
+                redeployTokens[occupyingForce.Race.Name] = tokens;
+            }
+            else
+            {
+                var newTokens = new TokenStack
+                {
+                    Count = occupyingForce.Count - 1,
+                    Race = occupyingForce.Race,
+                    Interactable = true,
+                    OwnerId = occupyingForce.OwnerId,
+                    Power = occupyingForce.Power,
+                    Team = occupyingForce.Team
+                };
+                redeployTokens[area.Value.OccupyingForce.Race.Name] = newTokens;
+            }
+
+            occupyingForce.Count = 1;
+            area.Value.OccupyingForce = occupyingForce;
+            MapAreas.Set(area.Key, area.Value);
+        }
+
+        foreach (var token in redeployTokens)
+        {
+            if (playerBehaviour.Tokens.TryGet(token.Key, out var tokens))
+            {
+                tokens.Count += token.Value.Count;
+                playerBehaviour.Tokens.Set(token.Key, tokens);
+            }
+            else
+            {
+                playerBehaviour.Tokens.Add(token.Key, token.Value);
+            }
+        }
+    }
+
+    private void RefillCombos()
+    {
+        var claimedCombo = Combos.First(x => x.Claimed);
+        var claimedIndex = Combos.IndexOf(claimedCombo);
+        Debug.Log($"Combo '{claimedCombo}' claimed at index {claimedIndex}");
+        for (var i = claimedIndex; i < Combos.Length; i++)
+        {
+            if (i == Combos.Length - 1)
+            {
+                var newCard = _combos.GetCombos(1)[0];
+                Combos.Set(i, newCard);
+            }
+            else
+            {
+                Combos.Set(i, Combos[i + 1]);
+            }
+        }
     }
 
     private PlayerBehaviour GetPlayerBehaviour(PlayerRef player)

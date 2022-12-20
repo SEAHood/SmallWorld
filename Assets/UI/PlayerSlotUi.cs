@@ -13,7 +13,7 @@ public class PlayerSlotUi : MonoBehaviour
     public Image AvatarImage;
     public Image BannerImage;
 
-    public void Populate(string name, Card? combo, Team team)
+    public void Populate(string name, Combo? combo, Team team)
     {
         NameText.text = name;
         ComboText.text = combo.HasValue ? $"{combo}" : "";

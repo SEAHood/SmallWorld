@@ -20,20 +20,20 @@ public class MapArea : NetworkBehaviour, IPointerEnterHandler, IPointerExitHandl
         Farm
     }
 
-
     public List<MapArea> AdjacentAreas;
     public AreaBiome Biome;
     public GameObject TokenStackPrefab;
     public bool HasCavern;
     public bool HasMine;
     public bool HasMagic;
-    public bool HasLostTribe;
+    public bool IsLostTribeSpawn;
+    public bool IsBorderArea;
+
     [Networked(OnChanged = nameof(OccupyingForceChanged))] public TokenStack OccupyingForce { get; set; }
     [Networked] public NetworkBool IsOccupied { get; set; }
     [Networked] public NetworkString<_4> Id { get; set; }
 
     private Color _color;
-
     private Image _goodBorder;
     private Image _badBorder;
     private Image _highlight;
@@ -73,7 +73,7 @@ public class MapArea : NetworkBehaviour, IPointerEnterHandler, IPointerExitHandl
             {
                 _instantiatedToken.Populate(OccupyingForce);
             }
-            else if (HasLostTribe)
+            else if (IsLostTribeSpawn)
             {
                 //Utility.ClearTransform(_tokenPosition);
                 var token = new TokenStack
@@ -96,8 +96,18 @@ public class MapArea : NetworkBehaviour, IPointerEnterHandler, IPointerExitHandl
         GetComponent<SpriteRenderer>().color = _color;
     }
 
+    public void Highlight(bool enable)
+    {
+        _highlight.enabled = enable;
+    }
+
     public void OnPointerEnter(PointerEventData eventData)
     {
+        foreach (var a in AdjacentAreas)
+        {
+            //a.Highlight(true);
+        }
+
         var player = Utility.FindLocalPlayer();
         var tokens = player.ActiveTokenStack;
         if (tokens == null || tokens.Value.Count <= 0 || FindObjectOfType<GameLogic>().TurnStage == GameLogic.TurnState.Redeploy)
@@ -108,7 +118,8 @@ public class MapArea : NetworkBehaviour, IPointerEnterHandler, IPointerExitHandl
         else
         {
             var tokensToConquer = ConflictResolver.TokensForConquest(tokens.Value, this);
-            if (tokens.Value.Count < tokensToConquer)
+            var validAreaToConquer = AreaResolver.CanUseArea(player, this);
+            if (tokens.Value.Count < tokensToConquer || !validAreaToConquer)
             {
                 // Not enough tokens to conquer
                 _badBorder.enabled = true;
@@ -123,6 +134,11 @@ public class MapArea : NetworkBehaviour, IPointerEnterHandler, IPointerExitHandl
 
     public void OnPointerExit(PointerEventData eventData)
     {
+        foreach (var a in AdjacentAreas)
+        {
+            //a.Highlight(false);            
+        }
+
         _highlight.enabled = false;
         _goodBorder.enabled = false;
         _badBorder.enabled = false;

@@ -4,41 +4,36 @@ using System.Collections.Generic;
 
 namespace Assets.Repo
 {
-    public class CardRepo
+    public class ComboRepo
     {
         public PowerRepo powerRepo;
         public RaceRepo raceRepo;
 
-        public CardRepo()
+        public ComboRepo()
         {
             powerRepo = new PowerRepo();
             raceRepo = new RaceRepo();
         }
 
-        public List<Card> GetCards(int count)
+        public List<Combo> GetCombos(int count)
         {
             var powers = powerRepo.GetPowers(count);
             var races = raceRepo.GetRaces(count);
-            var cards = new List<Card>();
+            var combos = new List<Combo>();
 
             for (int i = 0; i < count; i++)
             {
-                cards.Add(new Card 
+                combos.Add(new Combo 
                 { 
                     Id = Guid.NewGuid().ToString(),
                     Power = powers[i], 
                     Race = races[i],
                     Claimed = false,
-                    VictoryCoinsPlaced = 0
+                    CoinsPlaced = 0
                 });
             }
 
-            return cards;
-        }
-
-        public List<Power> Test(int count)
-        {
-            return powerRepo.GetPowers(count);
+            return combos;
         }
     }
 }
