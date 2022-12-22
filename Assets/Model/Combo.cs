@@ -19,13 +19,13 @@ namespace Assets.Model
             return $"{BeautifyPowerName()} {BeautifyRaceName()}";
         }
 
-        private string BeautifyPowerName()
+        public string BeautifyPowerName()
         {
             if (Power.Name == "DragonMaster") return "Dragon Master";
             return Power.Name.ToString();
         }
 
-        private string BeautifyRaceName()
+        public string BeautifyRaceName()
         {
             switch (Race.Name.ToString())
             {

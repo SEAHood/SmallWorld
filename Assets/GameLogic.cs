@@ -78,6 +78,10 @@ public class GameLogic : NetworkBehaviour
             playerBehaviour.ActiveCombo = serverCombo;
             playerBehaviour.HasCombo = true;
 
+            // Decrement cost of combo
+            var comboCost = comboIndex;
+            playerBehaviour.Coins -= comboCost;
+
             var tokenStack = new TokenStack
             {
                 Power = serverCombo.Power,
@@ -107,6 +111,9 @@ public class GameLogic : NetworkBehaviour
             }
             else if (TurnStage == TurnState.Redeploy)
             {
+                var coins = CoinCalculator.CalculateEndOfTurnCoins(playerBehaviour);
+                playerBehaviour.Coins += coins;
+                // TODO - some kind of wait/RPC for showing the coin animation at some point
                 IncrementPlayerTurn();
             }
         }
@@ -163,8 +170,9 @@ public class GameLogic : NetworkBehaviour
             var mapArea = MapAreas.Get(areaId);
             var tokensForSuccess = ConflictResolver.TokensForConquest(playerToken, mapArea);
             var validAreaToConquer = AreaResolver.CanUseArea(playerBehaviour, mapArea);
+            var isOwnedArea = mapArea.OccupyingForce.OwnerId == playerBehaviour.Id; // Can't conquer own area
 
-            if (playerToken.Count < tokensForSuccess || !validAreaToConquer)
+            if (playerToken.Count < tokensForSuccess || !validAreaToConquer || isOwnedArea)
                 return;
 
             playerToken.Count = playerToken.Count - tokensForSuccess;

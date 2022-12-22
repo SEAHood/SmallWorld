@@ -81,6 +81,7 @@
     <Compile Include="Assets\UI\MainMenuUi.cs" />
     <Compile Include="Assets\Helper\AreaResolver.cs" />
     <Compile Include="Assets\GameLogic.cs" />
+    <Compile Include="Assets\Helper\Extensions.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Utilities\FusionEditorUtilitiesExternal.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\FusionBurstIntegration.cs" />
     <Compile Include="Assets\Model\Race.cs" />
@@ -125,7 +126,9 @@
     <Compile Include="Assets\MapArea.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\ControllerPrototype.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\FusionGraph.cs" />
-    <Compile Include="Assets\Helper\Extensions.cs" />
+    <Compile Include="Assets\Helper\CoinCalculator.cs" />
+    <Compile Include="Assets\DescriptionUi.cs" />
+    <Compile Include="Assets\TestUi.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

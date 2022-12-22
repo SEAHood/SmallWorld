@@ -16,7 +16,7 @@ namespace Assets.Repo
 
         public List<Power> GetPowers(int count)
         {
-            // TODO This will break if count > AvailablePowers.Count
+            // TODO Fix: This will break if count > AvailablePowers.Count
 
             var powers = new List<Power>();
             var nums = Enumerable.Range(0, AvailablePowers.Count).ToArray();

@@ -62,17 +62,20 @@ public class PlayerBehaviour : NetworkBehaviour
         {
             if (_gameLogic.TurnStage == GameLogic.TurnState.Conquer)
             {
+                if (area.OccupyingForce.OwnerId == Id) return;
                 Debug.Log($"[CLIENT] Attempting to conquer {area.name}");
                 _gameLogic.RPC_ConquerArea(this, area.Id, ActiveTokenStack.Value);
             }
             else if (_gameLogic.TurnStage == GameLogic.TurnState.Redeploy)
             {
+                if (area.OccupyingForce.OwnerId != Id) return;
                 Debug.Log($"[CLIENT] Attempting to redeploy troops to {area.name}");
                 _gameLogic.RPC_RedeployToArea(this, area.Id, ActiveTokenStack.Value);
             }
         }
         else if (_gameLogic.TurnStage == GameLogic.TurnState.Redeploy)
         {
+            if (area.OccupyingForce.OwnerId != Id) return;
             Debug.Log($"[CLIENT] Attempting to collect token from {area.name}");
             _gameLogic.RPC_CollectToken(this, area.Id);
         }

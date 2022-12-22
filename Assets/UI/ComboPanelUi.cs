@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
@@ -15,6 +16,8 @@ public class ComboPanelUi : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     public Combo Combo;
     public Transform Coin;
     public TextMeshProUGUI CoinValue;
+
+    public UnityEvent<Combo> OnClicked = new UnityEvent<Combo>();
 
     private Vector3 _originalScale;
     private GameUi _gameUi;
@@ -36,10 +39,11 @@ public class ComboPanelUi : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (Combo.Claimed) return;
+        //if (Combo.Claimed) return;
         Debug.Log($"Clicked combo {Combo.Power.Name} {Combo.Race.Name}");
-        var localPlayer = Utility.FindLocalPlayer();
-        localPlayer.TryAcquireCombo(Combo);
+        OnClicked.Invoke(Combo);
+        /*var localPlayer = Utility.FindLocalPlayer();
+        localPlayer.TryAcquireCombo(Combo);*/
     }
 
     public void OnPointerEnter(PointerEventData eventData)

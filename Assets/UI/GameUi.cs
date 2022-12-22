@@ -30,6 +30,7 @@ public class GameUi : MonoBehaviour
     public TextMeshProUGUI DebugTurn;
 
     public GameLogic GameLogic;
+    public DescriptionUi DescriptionUi;
 
     private PlayerBehaviour _localPlayer;
     private List<PlayerBehaviour> _otherPlayers;
@@ -38,8 +39,9 @@ public class GameUi : MonoBehaviour
     {
         _localPlayer = Utility.FindLocalPlayer();
         _otherPlayers = Utility.FindOtherPlayers();
-        if (_localPlayer == null) throw new Exception("Critical: There is no local player, cannot proceed with GameUi initialisation");
+        if (_localPlayer == null) throw new Exception("[CRITICAL] There is no local player, cannot proceed with GameUi initialisation");
         RefreshUi();
+        DescriptionUi.gameObject.SetActive(false);
     }
 
     public void RefreshUi()
@@ -154,7 +156,14 @@ public class GameUi : MonoBehaviour
         {
             var comboPanel = Instantiate(ComboPrefab, AvailableCombos);
             comboPanel.GetComponent<ComboPanelUi>().Populate(combo);
+            comboPanel.GetComponent<ComboPanelUi>().OnClicked.AddListener(HandleComboClick);
         }
+    }
+
+    private void HandleComboClick(Combo combo)
+    {
+        DescriptionUi.gameObject.SetActive(true);
+        DescriptionUi.Populate(combo);
     }
 
     public void ApplyTempComboCoins(ComboPanelUi comboPanelUi)
@@ -196,6 +205,7 @@ public class GameUi : MonoBehaviour
             var combo = localPlayer.ActiveCombo;
             var comboPanel = Instantiate(ComboPrefab, LocalPlayerCombo);
             comboPanel.GetComponent<ComboPanelUi>().Populate(combo);
+            comboPanel.GetComponent<ComboPanelUi>().OnClicked.AddListener(HandleComboClick);
         }
     }
 
