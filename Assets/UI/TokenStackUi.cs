@@ -19,6 +19,7 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
     public GameObject CountPanel;
     public TextMeshProUGUI CountText;
     public GameObject StackTokenTemplatePrefab;
+    public TokenStackUi ConquerCostStack;
 
     public string Race;
     public Team Team;
@@ -28,7 +29,9 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
 
     private string _lastRace;
     private int _lastCount;
+    private int? _lastHoverCost;
     private Team _lastTeam;
+    private bool _lastAttachedToMouse;
 
     private Vector3 _originalPosition;
     private bool _attachedToMouse;
@@ -46,12 +49,25 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
     void FixedUpdate()
     {
         if (!_active) return;
-        if (Race != _lastRace || Count != _lastCount || Team != _lastTeam)
+        if (Owner != null)
+        {
+            Debug.Log($"_lastHoverCost: {_lastHoverCost}");
+            Debug.Log($"Owner?.HoveredAreaConquerCost: {Owner?.HoveredAreaConquerCost}");
+        }
+
+        if (Race != _lastRace ||
+            Count != _lastCount || 
+            Team != _lastTeam ||
+            Owner?.HoveredAreaConquerCost != _lastHoverCost ||
+            _attachedToMouse != _lastAttachedToMouse)
             Refresh();
+
 
         _lastRace = Race;
         _lastCount = Count;
         _lastTeam = Team;
+        _lastHoverCost = Owner?.HoveredAreaConquerCost;
+        _lastAttachedToMouse = _attachedToMouse;
     }
 
     void Update()
@@ -73,11 +89,24 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
 
     private void Refresh()
     {
-        UpdateMainToken();
-        UpdateCountText();
-        UpdateTeamTag();
-        UpdateStack();
-        GenerateOffset();
+        if (Count == 0)
+        {
+            MainToken.enabled = false;
+            CountPanel.SetActive(false);
+            TeamTag.enabled = false;
+            Stack.gameObject.SetActive(false);
+            if (ConquerCostStack != null)
+                ConquerCostStack.gameObject.SetActive(false);
+        }
+        else
+        {
+            UpdateMainToken();
+            UpdateCountText();
+            UpdateTeamTag();
+            UpdateStack();
+            UpdateConquerCostStack();
+            GenerateOffset();
+        }
     }
 
     private void UpdateMainToken()
@@ -114,6 +143,26 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
             stackItem.GetComponent<Image>().sprite = Resources.Load<Sprite>($"Tokens/{Race}Token");
         }
         StartCoroutine(GenerateOffset());
+    }
+
+    private void UpdateConquerCostStack()
+    {
+        // If we're not conquering, don't bother
+        if (ConquerCostStack != null && (!_attachedToMouse || FindObjectOfType<GameLogic>().TurnStage != GameLogic.TurnState.Conquer))
+        {
+            ConquerCostStack.Count = 0;
+            return;
+        }
+
+        Debug.Log($"UpdateConquerCostStack(): {ConquerCostStack != null}, {Owner != null}, {Owner?.HoveredAreaConquerCost}");
+        if (ConquerCostStack != null && Owner != null)
+        {
+            ConquerCostStack.Race = Race;
+            ConquerCostStack.Team = Team;
+            ConquerCostStack.Count = Owner.HoveredAreaConquerCost;
+            ConquerCostStack.Interactable = false;
+            ConquerCostStack.Activate();
+        }
     }
 
     IEnumerator GenerateOffset()
@@ -155,8 +204,13 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
         TeamTag.enabled = true;
         CountPanel.SetActive(true);
         Stack.gameObject.SetActive(true);
-        _active = true;
+        Activate();
         Refresh();
+    }
+
+    public void Activate()
+    {
+        _active = true;
     }
 
     public void AttachToMouse()

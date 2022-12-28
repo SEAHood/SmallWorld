@@ -3,6 +3,8 @@ using Assets.Helper;
 using Assets.Model;
 using Fusion;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -18,7 +20,9 @@ public class PlayerBehaviour : NetworkBehaviour
     [Networked] public NetworkBool HasCombo { get; set; }
     [Networked] public int Coins { get; set; }
     [Networked] public bool HasTokensInPlay { get; set; }
+    [Networked] public int ConquerOrderIx { get; set; }
     public TokenStack? ActiveTokenStack { get; set; }
+    public int HoveredAreaConquerCost { get; set; }
 
     private GameLogic _gameLogic;
 
@@ -99,6 +103,39 @@ public class PlayerBehaviour : NetworkBehaviour
         Debug.Log("RPC_PickUpToken");
         FindObjectOfType<GameUi>().CreateMouseAttachedTokenStack(tokenStack);
         ActiveTokenStack = tokenStack;
+    }
+    /*
+        [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
+        public void RPC_AwardAreaTokens(NetworkString<_4>[] areas, int[] values)
+        {
+            if (areas.Length != values.Length) throw new Exception("[CRITICAL] RPC_AwardAreaTokens: Area count didn't match value count");
+            var mapAreas = FindObjectsOfType<MapArea>();
+            var areaValues = new Dictionary<MapArea, int>();
+            for (var i = 0; i < areas.Length; i++)
+            {
+                areaValues.Add(mapAreas.First(x => x.Id == areas[i]), values[i]);
+            }
+            FindObjectOfType<GameUi>().ShowCoinAnimation(areaValues, () => _gameLogic.RPC_EndTurnAnimationsFinished(this));
+        }
+    */
+    [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
+    public void RPC_AwardAreaTokens(NetworkString<_4> area, int value)
+    {
+        var mapArea = FindObjectsOfType<MapArea>().First(x => x.Id == area);
+        FindObjectOfType<GameUi>().ShowCoinAnimation(mapArea, value, true, () => { });
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
+    public void RPC_NotifyAreaTokens(NetworkString<_4> area, int value)
+    {
+        var mapArea = FindObjectsOfType<MapArea>().First(x => x.Id == area);
+        FindObjectOfType<GameUi>().ShowCoinAnimation(mapArea, value, false, () => { });
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
+    public void RPC_NotifyTotalRoundTokens(int value)
+    {
+        FindObjectOfType<GameUi>().ShowTotalRoundCoins(value);
     }
 
     /*[Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]

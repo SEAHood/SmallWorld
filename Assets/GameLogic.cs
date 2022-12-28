@@ -111,10 +111,23 @@ public class GameLogic : NetworkBehaviour
             }
             else if (TurnStage == TurnState.Redeploy)
             {
-                var coins = CoinCalculator.CalculateEndOfTurnCoins(playerBehaviour);
-                playerBehaviour.Coins += coins;
-                // TODO - some kind of wait/RPC for showing the coin animation at some point
-                IncrementPlayerTurn();
+                var ownedMapAreas = MapAreas
+                    .Where(x => x.Value.OccupyingForce.OwnerId == playerBehaviour.Id)
+                    .Select(x => x.Value)
+                    .OrderBy(x => x.ConquerOrder);
+                var delay = 0f;
+                var coinsEarned = 0;
+                foreach (var ownedMapArea in ownedMapAreas)
+                {
+                    var value = CoinCalculator.CalculatePlayerMapAreaCoins(playerBehaviour, ownedMapArea);
+                    StartCoroutine(DistributeAreaCoinsToPlayer(playerBehaviour, ownedMapArea, value, delay));
+                    delay += 2f;
+                    coinsEarned += value;
+                }
+                coinsEarned += CoinCalculator.CalculateBonusCoins(playerBehaviour, Turn, ownedMapAreas);
+                StartCoroutine(ShowTotalRoundCoins(delay, playerBehaviour, coinsEarned));
+                delay += 2f;
+                StartCoroutine(DelayedTurnIncrement(delay));
             }
         }
     }
@@ -169,7 +182,7 @@ public class GameLogic : NetworkBehaviour
         {
             var mapArea = MapAreas.Get(areaId);
             var tokensForSuccess = ConflictResolver.TokensForConquest(playerToken, mapArea);
-            var validAreaToConquer = AreaResolver.CanUseArea(playerBehaviour, mapArea);
+            var validAreaToConquer = AreaResolver.CanUseArea(playerBehaviour, mapArea, TurnStage);
             var isOwnedArea = mapArea.OccupyingForce.OwnerId == playerBehaviour.Id; // Can't conquer own area
 
             if (playerToken.Count < tokensForSuccess || !validAreaToConquer || isOwnedArea)
@@ -189,6 +202,9 @@ public class GameLogic : NetworkBehaviour
                 OwnerId = playerToken.OwnerId
             };
             mapArea.IsOccupied = true;
+            mapArea.ConquerOrder = playerBehaviour.ConquerOrderIx;
+            mapArea.ConqueredThisTurn = true;
+            playerBehaviour.ConquerOrderIx++;
             MapAreas.Set(areaId, mapArea);
 
             if (playerToken.Count <= 0)
@@ -224,6 +240,13 @@ public class GameLogic : NetworkBehaviour
             playerBehaviour.RPC_RefreshActiveTokenStack();
         }
     }
+
+    /*[Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    internal void RPC_EndTurnAnimationsFinished(PlayerBehaviour playerBehaviour)
+    {
+        if (!IsPlayerTurn(playerBehaviour.Id.ToString())) return;
+        IncrementPlayerTurn();
+    }*/
     #endregion
 
     public void StartGame()
@@ -255,6 +278,18 @@ public class GameLogic : NetworkBehaviour
         foreach (var player in _players)
         {
             GetPlayerBehaviour(player).Coins = amount;
+        }
+    }
+
+    private IEnumerator DistributeAreaCoinsToPlayer(PlayerBehaviour player, MapArea area, int value, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        player.RPC_AwardAreaTokens(area.Id, value);
+        foreach (var p in _players)
+        {
+            var b = GetPlayerBehaviour(p);
+            if (b.Id != player.Id)
+                b.RPC_NotifyAreaTokens(area.Id, value);
         }
     }
 
@@ -306,6 +341,23 @@ public class GameLogic : NetworkBehaviour
         }
     }
 
+    private IEnumerator ShowTotalRoundCoins(float delay, PlayerBehaviour player, int coinsEarned)
+    {
+        yield return new WaitForSeconds(delay);
+        player.Coins += coinsEarned;
+        foreach (var p in _players)
+        {
+            var b = GetPlayerBehaviour(p);
+            b.RPC_NotifyTotalRoundTokens(coinsEarned);
+        }
+    }
+    
+    private IEnumerator DelayedTurnIncrement(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        IncrementPlayerTurn();
+    }
+
     private void IncrementPlayerTurn()
     {
         if (!Runner.IsServer) return;
@@ -328,7 +380,18 @@ public class GameLogic : NetworkBehaviour
         var playerTurn = _playerTurnOrder[PlayerTurn];
         var player = GetPlayerBehaviour(playerTurn);
         UndeployPlayerTokens(player);
+
         PlayerTurnId = player.Id;
+
+        // Reset map area stats
+        foreach (var area in MapAreas)
+        {
+            var newArea = area.Value;
+            newArea.ConqueredThisTurn = false;
+            newArea.WasOccupied = area.Value.IsOccupied;
+            MapAreas.Set(area.Key, newArea);
+        }
+
         Debug.Log($"[SERVER] Player turn order: {string.Join(", ", _playerTurnOrder.Keys)}");
         Debug.Log($"[SERVER] Incremented player turn to {PlayerTurn} ({PlayerTurnId}) - {TurnStage}");
     }

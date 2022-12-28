@@ -123,6 +123,9 @@ MonoBehaviour:
   RaceImage: {fileID: 1346700506172085047}
   Coin: {fileID: 7994196563897784672}
   CoinValue: {fileID: 521510553135604132}
+  OnClicked:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1201622649097963620
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,10 +1,12 @@
 using Assets.Helper;
 using Assets.Model;
+using Fusion;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class GameUi : MonoBehaviour
@@ -22,10 +24,14 @@ public class GameUi : MonoBehaviour
     public Transform AvailableCombos;
     public Transform Tokens;
     public TextMeshProUGUI CoinsText;
+    public Transform CoinTarget;
+    public Transform TotalCoinsAnchor;
 
     public GameObject PlayerSlotPrefab;
     public GameObject ComboPrefab;
     public GameObject TokenStackPrefab;
+    public GameObject CoinPrefab;
+    public GameObject TotalCoinsPrefab;
 
     public TextMeshProUGUI DebugTurn;
 
@@ -34,6 +40,7 @@ public class GameUi : MonoBehaviour
 
     private PlayerBehaviour _localPlayer;
     private List<PlayerBehaviour> _otherPlayers;
+    private bool _actionInProgress;
 
     public void Initialise()
     {
@@ -113,6 +120,7 @@ public class GameUi : MonoBehaviour
 
     private void SetButtons(PlayerBehaviour localPlayer)
     {
+        _actionInProgress = false;
         var isOwnTurn = GameLogic.IsPlayerTurn(localPlayer.Id.ToString());
         var actionImage = ActionButton.GetComponent<Image>();
         var actionText = ActionButton.transform.Find("Text").GetComponent<TextMeshProUGUI>();
@@ -164,6 +172,29 @@ public class GameUi : MonoBehaviour
     {
         DescriptionUi.gameObject.SetActive(true);
         DescriptionUi.Populate(combo);
+    }
+/*
+    public void ShowCoinAnimation(Dictionary<MapArea, int> areas, UnityAction callbackWhenDone)
+    {
+        foreach (var area in areas)
+        {
+            var coin = Instantiate(CoinPrefab, transform);
+            coin.transform.position = area.Key.transform.position;
+            coin.GetComponent<CoinUi>().Initialise(area.Value, CoinTarget.position);
+        }
+        callbackWhenDone();
+    }*/
+    public void ShowCoinAnimation(MapArea area, int value, bool ownCoins, UnityAction callbackWhenDone)
+    {
+        var coin = Instantiate(CoinPrefab, transform);
+        coin.transform.position = area.transform.position;
+        coin.GetComponent<CoinUi>().Initialise(value, CoinTarget.position, ownCoins, callbackWhenDone);
+    }
+
+    public void ShowTotalRoundCoins(int value)
+    {
+        var coins = Instantiate(TotalCoinsPrefab, TotalCoinsAnchor);
+        coins.GetComponent<TotalCoinBehaviour>().Initialise(value);
     }
 
     public void ApplyTempComboCoins(ComboPanelUi comboPanelUi)
@@ -246,7 +277,12 @@ public class GameUi : MonoBehaviour
 
     public void ActionClicked()
     {
-        _localPlayer.TryAction();
+        if (!_actionInProgress)
+        {
+            _actionInProgress = true;
+            ActionButton.GetComponent<Image>().sprite = Resources.Load<Sprite>("Buttons/ActionDisabled");
+            _localPlayer.TryAction();
+        }
     }
 
     public void DeclineClicked()

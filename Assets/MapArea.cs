@@ -28,10 +28,13 @@ public class MapArea : NetworkBehaviour, IPointerEnterHandler, IPointerExitHandl
     public bool HasMagic;
     public bool IsLostTribeSpawn;
     public bool IsBorderArea;
+    public bool ConqueredThisTurn;
+    public bool WasOccupied;
 
     [Networked(OnChanged = nameof(OccupyingForceChanged))] public TokenStack OccupyingForce { get; set; }
     [Networked] public NetworkBool IsOccupied { get; set; }
     [Networked] public NetworkString<_4> Id { get; set; }
+    [Networked] public int ConquerOrder { get; set; }
 
     private Color _color;
     private Image _goodBorder;
@@ -39,6 +42,7 @@ public class MapArea : NetworkBehaviour, IPointerEnterHandler, IPointerExitHandl
     private Image _highlight;
     private Transform _tokenPosition;
     private TokenStackUi _instantiatedToken;
+    private bool _isHovered;
 
     private void Awake()
     {
@@ -89,6 +93,11 @@ public class MapArea : NetworkBehaviour, IPointerEnterHandler, IPointerExitHandl
                 IsOccupied = true;
             }
         }
+
+        if (_isHovered)
+        {
+            OnPointerEnter(new PointerEventData(FindObjectOfType<EventSystem>()));
+        }
     }
 
     public void ResetColour()
@@ -103,6 +112,7 @@ public class MapArea : NetworkBehaviour, IPointerEnterHandler, IPointerExitHandl
 
     public void OnPointerEnter(PointerEventData eventData)
     {
+        _isHovered = true;
         foreach (var a in AdjacentAreas)
         {
             //a.Highlight(true);
@@ -110,7 +120,11 @@ public class MapArea : NetworkBehaviour, IPointerEnterHandler, IPointerExitHandl
 
         var player = Utility.FindLocalPlayer();
         var tokens = player.ActiveTokenStack;
-        if (tokens == null || tokens.Value.Count <= 0 || FindObjectOfType<GameLogic>().TurnStage == GameLogic.TurnState.Redeploy)
+        var gameLogic = FindObjectOfType<GameLogic>();
+        _highlight.enabled = false;
+        _goodBorder.enabled = false;
+        _badBorder.enabled = false;
+        if (tokens == null || tokens.Value.Count <= 0 || gameLogic.TurnStage == GameLogic.TurnState.Redeploy)
         {
             // No tokens in use or in redeploy, just highlight
             _highlight.enabled = true;
@@ -118,27 +132,35 @@ public class MapArea : NetworkBehaviour, IPointerEnterHandler, IPointerExitHandl
         else
         {
             var tokensToConquer = ConflictResolver.TokensForConquest(tokens.Value, this);
-            var validAreaToConquer = AreaResolver.CanUseArea(player, this);
+            var validAreaToConquer = AreaResolver.CanUseArea(player, this, gameLogic.TurnStage);
             if (tokens.Value.Count < tokensToConquer || !validAreaToConquer)
             {
                 // Not enough tokens to conquer
                 _badBorder.enabled = true;
+                player.HoveredAreaConquerCost = 0;
+                Debug.Log($"Setting player.HoveredAreaConquestCost to 0");
             }
             else
             {
                 // Enough to conquer
                 _goodBorder.enabled = true;
+                player.HoveredAreaConquerCost = tokensToConquer;
+                Debug.Log($"Setting player.HoveredAreaConquestCost to {tokensToConquer}");
             }
         }
     }
-
+    
     public void OnPointerExit(PointerEventData eventData)
     {
+        _isHovered = false;
         foreach (var a in AdjacentAreas)
         {
             //a.Highlight(false);            
         }
 
+        var player = Utility.FindLocalPlayer();
+        player.HoveredAreaConquerCost = 0;
+        Debug.Log($"Setting player.HoveredAreaConquestCost to 0");
         _highlight.enabled = false;
         _goodBorder.enabled = false;
         _badBorder.enabled = false;

@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Assets.Helper
@@ -11,9 +13,69 @@ namespace Assets.Helper
             var coins = 0;
             foreach (var area in ownedMapAreas)
             {
-                // TODO Power/race calculations
                 coins += 1;
             }
+            return coins;
+        }
+
+        public static int CalculatePlayerMapAreaCoins(PlayerBehaviour player, MapArea area)
+        {
+            var coins = 1;
+
+            // Race area modifiers
+            switch (player.ActiveCombo.Race.Name.ToString())
+            {
+                case "Dwarf" when area.HasMine:
+                    coins += 1;
+                    break;
+                case "Human" when area.Biome == MapArea.AreaBiome.Farm:
+                    coins += 1;
+                    break;
+                case "Wizard" when area.HasMagic:
+                    coins += 1;
+                    break;
+                case "Orc" when area.ConqueredThisTurn && area.WasOccupied:
+                    coins += 1;
+                    break;
+                default:
+                    break;
+            }
+
+            // Power area modifiers
+            switch (player.ActiveCombo.Power.Name.ToString())
+            {
+                case "Forest" when area.Biome == MapArea.AreaBiome.Forest:
+                    coins += 1;
+                    break;
+                case "Hill" when area.Biome == MapArea.AreaBiome.Hills:
+                    coins += 1;
+                    break;
+                case "Swamp" when area.Biome == MapArea.AreaBiome.Swamp:
+                    coins += 1;
+                    break;
+                case "Pillaging" when area.ConqueredThisTurn && area.WasOccupied:
+                    coins += 1;
+                    break;
+                case "Merchant":
+                    coins += 1;
+                    break;
+                default:
+                    break;
+            }
+
+            return coins;
+        }
+
+        public static int CalculateBonusCoins(PlayerBehaviour player, int turn, IEnumerable<MapArea> ownedAreas)
+        {
+            var coins = 0;
+
+            if (player.ActiveCombo.Power.Name == "Wealthy" && turn == 1)
+                coins += 7;
+
+            if (player.ActiveCombo.Power.Name == "Alchemist" && ownedAreas.Count() > 0)
+                coins += 2;
+
             return coins;
         }
     }
