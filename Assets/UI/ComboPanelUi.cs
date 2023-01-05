@@ -21,11 +21,14 @@ public class ComboPanelUi : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 
     private Vector3 _originalScale;
     private GameUi _gameUi;
+    private GameLogic _gameLogic;
+    private bool _enabled;
 
     void Awake()
     {
         _originalScale = transform.localScale;
         _gameUi = FindObjectOfType<GameUi>();
+        _gameLogic = FindObjectOfType<GameLogic>();
     }
 
     public void Populate(Combo combo)
@@ -37,8 +40,31 @@ public class ComboPanelUi : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
         CoinValue.text = combo.CoinsPlaced.ToString();
     }
 
+    public void Enable()
+    {
+        _enabled = true;
+        var c = Color.white;
+        c.a = 1f;
+        PowerImage.color = c;
+        RaceImage.color = c;
+        Coin.GetComponent<Image>().color = c;
+        CoinValue.color = c;
+    }
+
+    public void Disable()
+    {
+        _enabled = false;
+        var c = Color.white;
+        c.a = 0.5f;
+        PowerImage.color = c;
+        RaceImage.color = c;
+        Coin.GetComponent<Image>().color = c;
+        CoinValue.color = c;
+    }
+
     public void OnPointerClick(PointerEventData eventData)
     {
+        if (!_enabled) return;
         //if (Combo.Claimed) return;
         Debug.Log($"Clicked combo {Combo.Power.Name} {Combo.Race.Name}");
         OnClicked.Invoke(Combo);
@@ -48,16 +74,21 @@ public class ComboPanelUi : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
 
     public void OnPointerEnter(PointerEventData eventData)
     {
+        if (!_enabled) return;
         if (Combo.Claimed) return;
         transform.localScale = _originalScale * 1.2f;
-        _gameUi.ApplyTempComboCoins(this);
 
+        var cost = _gameLogic.GetComboCost(Combo);
+        _gameUi.ApplyTempComboCoins(this);
+        _gameUi.ShowMouseOverCoin(cost);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
+        if (!_enabled) return;
         if (Combo.Claimed) return;
         transform.localScale = _originalScale;
         _gameUi.RemoveTempComboCoins();
+        _gameUi.HideMouseOverCoin();
     }
 }

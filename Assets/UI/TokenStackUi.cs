@@ -49,11 +49,6 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
     void FixedUpdate()
     {
         if (!_active) return;
-        if (Owner != null)
-        {
-            Debug.Log($"_lastHoverCost: {_lastHoverCost}");
-            Debug.Log($"Owner?.HoveredAreaConquerCost: {Owner?.HoveredAreaConquerCost}");
-        }
 
         if (Race != _lastRace ||
             Count != _lastCount || 
@@ -61,7 +56,6 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
             Owner?.HoveredAreaConquerCost != _lastHoverCost ||
             _attachedToMouse != _lastAttachedToMouse)
             Refresh();
-
 
         _lastRace = Race;
         _lastCount = Count;
@@ -112,7 +106,7 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
     private void UpdateMainToken()
     {
         MainToken.enabled = true;
-        MainToken.sprite = Resources.Load<Sprite>($"Tokens/{Race}Token");
+        MainToken.sprite = Token.InDecline ? Resources.Load<Sprite>($"Tokens/{Race}TokenInDecline") : Resources.Load<Sprite>($"Tokens/{Race}Token");
     }
 
     private void UpdateCountText()
@@ -135,7 +129,7 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
     private void UpdateStack()
     {
         Stack.gameObject.SetActive(true);
-        Utility.ClearTransform(Stack);
+        Stack.Clear();
         var stackHeight = Count <= 4 ? Count : 4;
         for (var i = 0; i < stackHeight - 1; i++)
         {

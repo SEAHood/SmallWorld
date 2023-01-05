@@ -17,6 +17,7 @@ public class MainMenuUi : MonoBehaviour
     public TMP_InputField PlayerNameField;
 
     public NetworkManager NetworkManager;
+    public GameLogic GameLogic;
 
     void Start()
     {
@@ -34,16 +35,25 @@ public class MainMenuUi : MonoBehaviour
             ShowMainMenu();
     }
 
+    public void ResetUi()
+    {
+        ShowMainMenu();
+    }
+
     void HostClicked()
     {
         ShowLoader();
-        NetworkManager.HostGame();
+        GameLogic.StartHost();
+        /*EnsureNetworkManager();
+        NetworkManager.HostGame();*/
     }
 
     void JoinClicked()
     {
         ShowLoader();
-        NetworkManager.JoinGame();
+        GameLogic.StartJoin();
+        /*EnsureNetworkManager();
+        NetworkManager.JoinGame();*/
     }
 
     void SettingsClicked()
@@ -60,6 +70,15 @@ public class MainMenuUi : MonoBehaviour
     {
         PlayerPrefs.SetString("name", PlayerNameField.text);
         ShowMainMenu();
+    }
+
+    void EnsureNetworkManager()
+    {
+        if (NetworkManager == null)
+        {
+            var nw = new GameObject("NetworkManager");
+            nw.AddComponent<NetworkManager>();
+        }
     }
 
     private void ShowLoader()

@@ -11,13 +11,13 @@ using UnityEngine.Events;
 
 public class PlayerBehaviour : NetworkBehaviour
 {
-    [Networked] public NetworkString<_128> Id { get; set; }
+    [Networked] public NetworkString<_64> Id { get; set; }
     [Networked] public NetworkString<_16> Name { get; set; }
     [Networked] public Team Team { get; set; }
     //[Networked] public bool IsTurnActive { get; set; }
     [Networked(OnChanged = nameof(UiUpdateRequired)), Capacity(2)] public NetworkDictionary<NetworkString<_16>, TokenStack> Tokens => default;
     [Networked(OnChanged = nameof(UiUpdateRequired))] public Combo ActiveCombo { get; set; }
-    [Networked] public NetworkBool HasCombo { get; set; }
+    [Networked(OnChanged = nameof(HasComboChanged))] public NetworkBool HasCombo { get; set; }
     [Networked] public int Coins { get; set; }
     [Networked] public bool HasTokensInPlay { get; set; }
     [Networked] public int ConquerOrderIx { get; set; }
@@ -104,20 +104,7 @@ public class PlayerBehaviour : NetworkBehaviour
         FindObjectOfType<GameUi>().CreateMouseAttachedTokenStack(tokenStack);
         ActiveTokenStack = tokenStack;
     }
-    /*
-        [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
-        public void RPC_AwardAreaTokens(NetworkString<_4>[] areas, int[] values)
-        {
-            if (areas.Length != values.Length) throw new Exception("[CRITICAL] RPC_AwardAreaTokens: Area count didn't match value count");
-            var mapAreas = FindObjectsOfType<MapArea>();
-            var areaValues = new Dictionary<MapArea, int>();
-            for (var i = 0; i < areas.Length; i++)
-            {
-                areaValues.Add(mapAreas.First(x => x.Id == areas[i]), values[i]);
-            }
-            FindObjectOfType<GameUi>().ShowCoinAnimation(areaValues, () => _gameLogic.RPC_EndTurnAnimationsFinished(this));
-        }
-    */
+
     [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
     public void RPC_AwardAreaTokens(NetworkString<_4> area, int value)
     {
@@ -138,13 +125,12 @@ public class PlayerBehaviour : NetworkBehaviour
         FindObjectOfType<GameUi>().ShowTotalRoundCoins(value);
     }
 
-    /*[Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
-    public void RPC_BroadcastName()
+    [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
+    public void RPC_NotifyEndOfGame()
     {
-        Debug.Log($"[CLIENT] RPC_BroadcastName hit - setting Name to {PlayerPrefs.GetString("name")}");
-        RPC_SetName(PlayerPrefs.GetString("name"));
+        FindObjectOfType<GameUi>().ShowEndOfGame();
     }
-*/
+
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
     public void RPC_SetName(string name)
     {
@@ -176,5 +162,9 @@ public class PlayerBehaviour : NetworkBehaviour
     private static void UiUpdateRequired(Changed<PlayerBehaviour> changed)
     {
         Utility.UiUpdateRequired();
+    }
+    private static void HasComboChanged(Changed<PlayerBehaviour> changed)
+    {
+        //FindObjectOfType<GameUi>().ToggleComboPanel(changed.Behaviour.HasCombo);
     }
 }

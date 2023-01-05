@@ -9,20 +9,12 @@ namespace Assets.Helper
 {
     public static class Utility
     {
-        public static void ClearTransform(Transform t)
-        {
-            foreach (Transform child in t)
-            {
-                GameObject.Destroy(child.gameObject);
-            }
-        }
-
         public static PlayerBehaviour FindLocalPlayer()
         {
             return GameObject.FindObjectsOfType<PlayerBehaviour>().FirstOrDefault(x => x.IsLocal());
         }
 
-        public static PlayerBehaviour FindPlayerWithId(NetworkString<_128> id)
+        public static PlayerBehaviour FindPlayerWithId(NetworkString<_64> id)
         {
             return GameObject.FindObjectsOfType<PlayerBehaviour>().FirstOrDefault(x => x.Id == id);
         }
@@ -32,14 +24,14 @@ namespace Assets.Helper
             return GameObject.FindObjectsOfType<PlayerBehaviour>().Where(x => !x.IsLocal()).ToList();
         }
 
-        public static void UiUpdateRequired()
+        public static void UiUpdateRequired(bool newTurn = false, bool newPlayerTurn = false)
         {
-            GameObject.FindObjectOfType<UiManager>().RefreshUi();
-
             foreach (var area in GameObject.FindObjectsOfType<MapArea>())
             {
                 area.RefreshMapArea();
             }
+
+            GameObject.FindObjectOfType<UiManager>().RefreshUi(newTurn, newPlayerTurn);
         }
     }
 }

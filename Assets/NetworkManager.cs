@@ -11,7 +11,6 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
 {
     public void OnInput(NetworkRunner runner, NetworkInput input) { }
     public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
-    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { }
     public void OnConnectedToServer(NetworkRunner runner) { }
     public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token) { }
     public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason) { }
@@ -29,8 +28,20 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     [SerializeField] private NetworkPrefabRef _playerPrefab;
     private Dictionary<PlayerRef, NetworkObject> _spawnedCharacters = new Dictionary<PlayerRef, NetworkObject>();
 
+    void Start()
+    {
+        UiManager = FindObjectOfType<UiManager>();
+    }
+
     public void OnDisconnectedFromServer(NetworkRunner runner)
     {
+        Debug.Log("Disconnected - returning to main menu");
+        UiManager.GoToMainMenu();
+    }
+
+    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
+    {
+        Debug.Log("Runner shutdown - returning to main menu");
         UiManager.GoToMainMenu();
     }
 

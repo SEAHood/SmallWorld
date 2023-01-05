@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class GameLogic : NetworkBehaviour
 {
@@ -23,10 +24,10 @@ public class GameLogic : NetworkBehaviour
     }
 
     [Networked(OnChanged = nameof(UiUpdateRequired))] public GameState State { get; set; } // Current state of the game
-    [Networked(OnChanged = nameof(UiUpdateRequired))] public int Turn { get; set; } // Turn index (points to _playerTurnOrder)
+    [Networked(OnChanged = nameof(TurnChanged))] public int Turn { get; set; } // Turn index (points to _playerTurnOrder)
     [Networked(OnChanged = nameof(UiUpdateRequired))] public TurnState TurnStage { get; set; }
-    [Networked(OnChanged = nameof(UiUpdateRequired))] public int PlayerTurn { get; set; } // A players turn within a game turn
-    [Networked] public NetworkString<_128> PlayerTurnId { get; set; } // A players turn within a game turn
+    [Networked(OnChanged = nameof(PlayerTurnChanged))] public int PlayerTurn { get; set; } // A players turn within a game turn
+    [Networked] public NetworkString<_64> PlayerTurnId { get; set; } // A players turn within a game turn
     [Networked(OnChanged = nameof(UiUpdateRequired)), Capacity(6)] public NetworkArray<Combo> Combos => default;
     [Networked(OnChanged = nameof(UiUpdateRequired)), Capacity(30)] public NetworkDictionary<NetworkString<_4>, MapArea> MapAreas => default;
     [Networked] public int PlayerCount { get; set; }
@@ -38,8 +39,14 @@ public class GameLogic : NetworkBehaviour
     public GameObject Map4PlayerPrefab;
     public GameObject Map5PlayerPrefab;
 
+    public GameObject NetworkManagerPrefab;
+
     private List<PlayerRef> _players { get; set; }
     private Dictionary<int, PlayerRef> _playerTurnOrder { get; set; }
+    private NetworkManager _networkManager;
+    [HideInInspector] public int LastTurn = 0;
+    private bool _gameIsOver;
+    private int _maxTurns = 2;
 
     // Cards
     private ComboRepo _combos = new ComboRepo();
@@ -78,9 +85,10 @@ public class GameLogic : NetworkBehaviour
             playerBehaviour.ActiveCombo = serverCombo;
             playerBehaviour.HasCombo = true;
 
-            // Decrement cost of combo
+            // Calculate cost of combo
             var comboCost = comboIndex;
             playerBehaviour.Coins -= comboCost;
+            playerBehaviour.Coins += serverCombo.CoinsPlaced; // Collect coins previously placed on combo
 
             var tokenStack = new TokenStack
             {
@@ -126,7 +134,7 @@ public class GameLogic : NetworkBehaviour
                 }
                 coinsEarned += CoinCalculator.CalculateBonusCoins(playerBehaviour, Turn, ownedMapAreas);
                 StartCoroutine(ShowTotalRoundCoins(delay, playerBehaviour, coinsEarned));
-                delay += 2f;
+                delay += 3f;
                 StartCoroutine(DelayedTurnIncrement(delay));
             }
         }
@@ -135,10 +143,24 @@ public class GameLogic : NetworkBehaviour
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     internal void RPC_Decline(PlayerBehaviour playerBehaviour)
     {
-        if (IsPlayerTurn(playerBehaviour.Id.ToString()))
+        if (!IsPlayerTurn(playerBehaviour.Id.ToString())) return;
+
+        foreach (var mapArea in MapAreas)
         {
-            Debug.Log("[SERVER] RPC_Decline called");
+            if (mapArea.Value.OccupyingForce.OwnerId == playerBehaviour.Id)
+            {
+                var occupyingForce = mapArea.Value.OccupyingForce;
+                occupyingForce.Count = 1;
+                occupyingForce.InDecline = true;
+                mapArea.Value.OccupyingForce = occupyingForce;
+                MapAreas.Set(mapArea.Key, mapArea.Value);
+            }
         }
+
+        playerBehaviour.HasCombo = false;
+        playerBehaviour.Tokens.Clear();
+        IncrementPlayerTurn();
+        Debug.Log("[SERVER] RPC_Decline called");
     }
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
@@ -241,12 +263,26 @@ public class GameLogic : NetworkBehaviour
         }
     }
 
-    /*[Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-    internal void RPC_EndTurnAnimationsFinished(PlayerBehaviour playerBehaviour)
+    #endregion
+
+    #region Network Stuff
+    private void EnsureNetworkManager()
     {
-        if (!IsPlayerTurn(playerBehaviour.Id.ToString())) return;
-        IncrementPlayerTurn();
-    }*/
+        if (_networkManager == null)
+            _networkManager = Instantiate(NetworkManagerPrefab).GetComponent<NetworkManager>();
+    }
+
+    public void StartHost()
+    {
+        EnsureNetworkManager();
+        _networkManager.HostGame();
+    }
+
+    public void StartJoin()
+    {
+        EnsureNetworkManager();
+        _networkManager.JoinGame();
+    }
     #endregion
 
     public void StartGame()
@@ -255,6 +291,11 @@ public class GameLogic : NetworkBehaviour
         {
             InitialiseGame();
         }
+    }
+
+    public void Disconnect()
+    {
+        Runner.Shutdown();
     }
 
     private void InitialiseGame()
@@ -268,9 +309,8 @@ public class GameLogic : NetworkBehaviour
         GeneratePlayerTurnOrder();
         GenerateCards();
         SpawnMap();
-        IncrementPlayerTurn();
         State = GameState.GameStarted;
-        Utility.UiUpdateRequired();
+        StartCoroutine(DelayedTurnIncrement(0.5f));
     }
 
     private void DistributeCoins(int amount)
@@ -362,26 +402,39 @@ public class GameLogic : NetworkBehaviour
     {
         if (!Runner.IsServer) return;
 
-        if (Turn == 0)
+        //LastTurn = Turn;
+        var tempTurn = Turn;
+        var tempPlayerTurn = PlayerTurn;
+
+        if (tempTurn == 0)
         {
-            Turn = 1;
-            PlayerTurn = 0;
+            tempTurn = 1;
+            tempPlayerTurn = 0;
         }
         else
         {
-            PlayerTurn++;
-            if (PlayerTurn >= _playerTurnOrder.Count)
+            tempPlayerTurn++;
+            if (tempPlayerTurn >= _playerTurnOrder.Count)
             {
-                Turn++;
-                PlayerTurn = 0;
+                tempTurn++;
+                tempPlayerTurn = 0;
             }
         }
-        TurnStage = TurnState.Conquer;
-        var playerTurn = _playerTurnOrder[PlayerTurn];
+
+        if (tempTurn > _maxTurns)
+        {
+            TriggerEndOfTurn();
+            return;
+        }
+
+        var playerTurn = _playerTurnOrder[tempPlayerTurn];
         var player = GetPlayerBehaviour(playerTurn);
         UndeployPlayerTokens(player);
 
         PlayerTurnId = player.Id;
+        TurnStage = TurnState.Conquer;
+        Turn = tempTurn;
+        PlayerTurn = tempPlayerTurn;
 
         // Reset map area stats
         foreach (var area in MapAreas)
@@ -394,6 +447,16 @@ public class GameLogic : NetworkBehaviour
 
         Debug.Log($"[SERVER] Player turn order: {string.Join(", ", _playerTurnOrder.Keys)}");
         Debug.Log($"[SERVER] Incremented player turn to {PlayerTurn} ({PlayerTurnId}) - {TurnStage}");
+    }
+
+    private void TriggerEndOfTurn()
+    {
+        if (_gameIsOver) return;
+        _gameIsOver = true;
+        foreach (var player in _players)
+        {
+            GetPlayerBehaviour(player).RPC_NotifyEndOfGame();
+        }
     }
 
     // Takes all but one (per map area) of a players deployed tokens and returns them to their hand
@@ -463,8 +526,15 @@ public class GameLogic : NetworkBehaviour
 
     private PlayerBehaviour GetPlayerBehaviour(PlayerRef player)
     {
+        if (player == null) return null;
         var obj = Runner.GetPlayerObject(player);
+        if (obj == null) return null;
         return obj.GetComponent<PlayerBehaviour>();
+    }
+
+    public PlayerBehaviour GetCurrentPlayerTurn()
+    {
+        return GetPlayerBehaviour(Runner.ActivePlayers.FirstOrDefault(x => GetPlayerBehaviour(x).Id == PlayerTurnId));
     }
 
     public bool IsPlayerTurn(string id)
@@ -472,13 +542,115 @@ public class GameLogic : NetworkBehaviour
         return PlayerTurnId == id;
     }
 
+    private static void TurnChanged(Changed<GameLogic> changed)
+    {
+        Debug.Log($"TurnChanged");
+        Utility.UiUpdateRequired(true, true);
+    }
+
+    private static void PlayerTurnChanged(Changed<GameLogic> changed)
+    {
+        Debug.Log($"PlayerTurnChanged");
+        Utility.UiUpdateRequired(false, true);
+        /*changed.LoadNew();
+        var thisTurn = changed.Behaviour.Turn;
+        var lastTurn = changed.Behaviour.LastTurn;
+        Debug.Log($"thisTurn: {thisTurn}, lastTurn: {lastTurn}");
+        if (lastTurn != thisTurn)
+        {
+            if (thisTurn == 1) // Delay the first turn to account for loading etc
+                changed.Behaviour.StartCoroutine(changed.Behaviour.DelayedAction(3f, () => Utility.UiUpdateRequired(true, true)));
+            else
+                Utility.UiUpdateRequired(true, true);
+        }
+        else
+        {
+            Utility.UiUpdateRequired(false, true);
+        }*/
+    }
+
     private static void UiUpdateRequired(Changed<GameLogic> changed)
     {
         Utility.UiUpdateRequired();
+    }
+
+    IEnumerator DelayedAction(float delay, UnityAction action)
+    {
+        yield return new WaitForSeconds(delay);
+        action.Invoke();
     }
 
     public int GetPlayerCount()
     {
         return FindObjectsOfType<PlayerBehaviour>().Count(); // This is rubbish but I can't figure out how to have the non-hosts get the player count
     }
+
+    public int GetComboCost(Combo combo)
+    {
+        var comboIndex = Combos.IndexOf(combo);
+        var cost = -comboIndex;
+        cost += combo.CoinsPlaced;
+        return cost;
+    }
+
+    #region DebugUi Hooks
+
+    public string GetState()
+    {
+        if (Runner == null) return "N/A";
+        return State.ToString();
+    }
+
+    public string GetTurn()
+    {
+        if (Runner == null) return "N/A";
+        return Turn.ToString();
+    }
+
+    public string GetTurnStage()
+    {
+        if (Runner == null) return "N/A";
+        return TurnStage.ToString();
+    }
+
+    public string GetPlayerTurnIndex()
+    {
+        if (Runner == null) return "N/A";
+        return PlayerTurn.ToString();
+    }
+
+    public string GetPlayerTurnId()
+    {
+        if (Runner == null) return "N/A";
+        var turnId = PlayerTurnId.ToString();
+        return string.IsNullOrEmpty(turnId) ? "N/A" : turnId;
+    }
+
+    public string GetPlayerTurnName()
+    {
+        if (Runner == null) return "N/A";
+        var turnName = GetCurrentPlayerTurn()?.Name.ToString() ?? "N/A";
+        return string.IsNullOrEmpty(turnName) ? "N/A" : turnName;
+    }
+
+    public string GetAvailableComboCount()
+    {
+        if (Runner == null) return "N/A";
+        return Combos.Count().ToString();
+    }
+
+    public string GetMapAreaCount()
+    {
+        if (Runner == null) return "N/A";
+        return MapAreas.Count().ToString();
+    }
+
+    public string GetPlayerCountStr()
+    {
+        if (Runner == null) return "N/A";
+        return GetPlayerCount().ToString();
+    }
+
+
+    #endregion
 }

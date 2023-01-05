@@ -62,6 +62,7 @@
     <Compile Include="Assets\Enum\Team.cs" />
     <Compile Include="Assets\Photon\PhotonLibs\WebSocket\SocketWebTcp.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\FusionProfiler.cs" />
+    <Compile Include="Assets\MouseFollow.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\FusionStats\FusionStatsBillboard.cs" />
     <Compile Include="Assets\Helper\CoinCalculator.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\ToggleRunnerVisibility.cs" />
@@ -96,12 +97,14 @@
     <Compile Include="Assets\UI\GameUi.cs" />
     <Compile Include="Assets\Photon\PhotonLibs\WebSocket\WebSocket.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\SpawnPoints\SpawnerPrototypeT.cs" />
+    <Compile Include="Assets\DebugUi.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\NetworkSceneManagerBase.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\NetworkCharacterControllerPrototype.cs" />
     <Compile Include="Assets\TestUi.cs" />
     <Compile Include="Assets\Helper\ConflictResolver.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\SpawnPoints\ISpawnPointPrototype.cs" />
     <Compile Include="Assets\PlayerBehaviour.cs" />
+    <Compile Include="Assets\TextGrower.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\SpawnPoints\SpawnPointManagerPrototype.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\SpawnPoints\ISpawnPointManagerPrototypeT.cs" />
     <Compile Include="Assets\NetworkManager.cs" />
@@ -125,12 +128,14 @@
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\Utilities\FusionScalableIMGUI.cs" />
     <Compile Include="Assets\Repo\ComboRepo.cs" />
     <Compile Include="Assets\Model\Combo.cs" />
+    <Compile Include="Assets\TotalCoinBehaviour.cs" />
     <Compile Include="Assets\Repo\RaceRepo.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\SpawnPoints\PlayerSpawnPointManagerPrototype.cs" />
     <Compile Include="Assets\MapArea.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\ControllerPrototype.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\FusionGraph.cs" />
-    <Compile Include="Assets\TotalCoinBehaviour.cs" />
+    <Compile Include="Assets\PlayerLeaderboardEntryUi.cs" />
+    <Compile Include="Assets\EndScreenUi.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

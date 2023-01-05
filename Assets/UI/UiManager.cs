@@ -36,13 +36,13 @@ public class UiManager : MonoBehaviour
         _lastGameState = GameLogic.State;
     }
 
-    public void RefreshUi()
+    public void RefreshUi(bool newTurn, bool newPlayerTurn)
     {
         if (UiState == ActiveUi.Game)
         {
             foreach (var gameUi in FindObjectsOfType<GameUi>())
             {
-                gameUi.RefreshUi();
+                gameUi.RefreshUi(newTurn, newPlayerTurn);
             }
         }
     }
@@ -79,6 +79,7 @@ public class UiManager : MonoBehaviour
                 MainMenuUi.gameObject.SetActive(true);
                 RectLayoutUi.gameObject.SetActive(false);
                 SquareLayoutUi.gameObject.SetActive(false);
+                MainMenuUi.GetComponent<MainMenuUi>().ResetUi();
                 break;
             case ActiveUi.Lobby:
                 MainMenuUi.gameObject.SetActive(false);

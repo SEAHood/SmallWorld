@@ -1,3 +1,4 @@
+using Assets.Helper;
 using Fusion;
 using System;
 using System.Collections;
@@ -10,6 +11,7 @@ public class LobbyUi : MonoBehaviour
 {
     public Transform Players;
     public GameObject StartButton;
+    public GameObject BackButton;
     public GameObject WaitingText;
     public GameObject PlayerPanelPrefab;
 
@@ -24,6 +26,7 @@ public class LobbyUi : MonoBehaviour
     {
         StartButton.GetComponent<Button>().onClick.AddListener(StartClicked);
         StartButton.SetActive(isHost);
+        BackButton.GetComponent<Button>().onClick.AddListener(BackClicked);
         WaitingText.SetActive(!isHost);
 
         InvokeRepeating("UpdatePlayers", 0f, 1f);
@@ -32,6 +35,11 @@ public class LobbyUi : MonoBehaviour
     void StartClicked()
     {
         GameLogic.StartGame();
+    }
+
+    void BackClicked()
+    {
+        GameLogic.Disconnect();
     }
 
     public void UpdatePlayers()
@@ -44,7 +52,7 @@ public class LobbyUi : MonoBehaviour
         foreach (var player in FindObjectsOfType<PlayerBehaviour>())
         {
             var playerPanel = Instantiate(PlayerPanelPrefab, Players);
-            playerPanel.GetComponent<PlayerSlotUi>().Populate(player.Name.ToString(), null, player.Team);
+            playerPanel.GetComponent<PlayerSlotUi>().Populate(player.Name.ToString(), null, player.Team, false);
         }
     }
 }

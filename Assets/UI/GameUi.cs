@@ -26,6 +26,9 @@ public class GameUi : MonoBehaviour
     public TextMeshProUGUI CoinsText;
     public Transform CoinTarget;
     public Transform TotalCoinsAnchor;
+    public GameObject MouseOverCoin;
+    public TextMeshProUGUI MouseOverCoinValue;
+    public TextGrower CenterTextGrower;
 
     public GameObject PlayerSlotPrefab;
     public GameObject ComboPrefab;
@@ -33,10 +36,9 @@ public class GameUi : MonoBehaviour
     public GameObject CoinPrefab;
     public GameObject TotalCoinsPrefab;
 
-    public TextMeshProUGUI DebugTurn;
-
     public GameLogic GameLogic;
     public DescriptionUi DescriptionUi;
+    public EndScreenUi EndScreenUi;
 
     private PlayerBehaviour _localPlayer;
     private List<PlayerBehaviour> _otherPlayers;
@@ -47,36 +49,39 @@ public class GameUi : MonoBehaviour
         _localPlayer = Utility.FindLocalPlayer();
         _otherPlayers = Utility.FindOtherPlayers();
         if (_localPlayer == null) throw new Exception("[CRITICAL] There is no local player, cannot proceed with GameUi initialisation");
-        RefreshUi();
         DescriptionUi.gameObject.SetActive(false);
+        EndScreenUi.gameObject.SetActive(false);
     }
 
-    public void RefreshUi()
+    public void RefreshUi(bool newTurn, bool newPlayerTurn)
     {
         if (_localPlayer == null)
             Initialise();
-        else
+
+        SetLocalPlayer(_localPlayer);
+        SetOtherPlayers();
+        SetPlayerCombo(_localPlayer);
+        SetPlayerTokens(_localPlayer);
+        SetButtons(_localPlayer);
+        SetTurnText();
+        SetOtherPlayers();
+        SetAvailableCombos();
+
+        if (newTurn)
         {
-            SetLocalPlayer(_localPlayer);
-            SetOtherPlayers();
-            SetPlayerCombo(_localPlayer);
-            SetPlayerTokens(_localPlayer);
-            SetButtons(_localPlayer);
-            SetTurnText();
-            SetOtherPlayers();
-            SetAvailableCombos();
-            DebugTurn.text = Utility.FindPlayerWithId(GameLogic.PlayerTurnId).GetComponent<PlayerBehaviour>().Name.ToString();
+            CenterTextGrower.ShowText(GameLogic.Turn == 1 ? "Game Start" : "New Turn", () => CenterTextGrower.ShowText($"{GameLogic.GetCurrentPlayerTurn().Name}", null));
+        }
+        else if (newPlayerTurn)
+        {            
+            CenterTextGrower.ShowText($"{GameLogic.GetCurrentPlayerTurn().Name}", null);
         }
     }
 
     private void SetLocalPlayer(PlayerBehaviour localPlayer)
     {
-        /*if (localPlayer != null)
-            LocalPlayerSlot.transform.Find("Name").GetComponent<TextMeshProUGUI>().text = $"{localPlayer.Name}";
-        else
-            LocalPlayerSlot.transform.Find("Name").GetComponent<TextMeshProUGUI>().text = "???";*/
-
-        LocalPlayerSlot.GetComponent<PlayerSlotUi>().Populate(localPlayer.Name.ToString(), localPlayer.ActiveCombo, localPlayer.Team);
+        var gameLogic = FindObjectOfType<GameLogic>();
+        LocalPlayerSlot.GetComponent<PlayerSlotUi>().Populate(localPlayer.Name.ToString(), localPlayer.ActiveCombo, localPlayer.Team, 
+                                                              gameLogic.IsPlayerTurn(localPlayer.Id.ToString()));
         CoinsText.text = localPlayer.Coins.ToString();
     }
 
@@ -91,28 +96,40 @@ public class GameUi : MonoBehaviour
         if (Player2Slot != null)
         {
             if (player2 != null)
-                Player2Slot.GetComponent<PlayerSlotUi>().Populate(player2.Name.ToString(), player2.ActiveCombo, player2.Team);
+            {
+                var playerSlotUi = Player2Slot.GetComponent<PlayerSlotUi>();
+                playerSlotUi.Populate(player2.Name.ToString(), player2.ActiveCombo, player2.Team, GameLogic.IsPlayerTurn(player2.Id.ToString()));
+            }
             else
                 Player2Slot.gameObject.SetActive(false);
         }
         if (Player3Slot != null)
         {
             if (player3 != null)
-                Player3Slot.GetComponent<PlayerSlotUi>().Populate(player3.Name.ToString(), player3.ActiveCombo, player3.Team);
+            {
+                var playerSlotUi = Player3Slot.GetComponent<PlayerSlotUi>();
+                playerSlotUi.Populate(player3.Name.ToString(), player3.ActiveCombo, player3.Team, GameLogic.IsPlayerTurn(player3.Id.ToString()));
+            }
             else
                 Player3Slot.gameObject.SetActive(false);
         }
         if (Player4Slot != null)
         {
             if (player4 != null)
-                Player4Slot.GetComponent<PlayerSlotUi>().Populate(player4.Name.ToString(), player4.ActiveCombo, player4.Team);
+            {
+                var playerSlotUi = Player4Slot.GetComponent<PlayerSlotUi>();
+                playerSlotUi.Populate(player4.Name.ToString(), player4.ActiveCombo, player4.Team, GameLogic.IsPlayerTurn(player4.Id.ToString()));
+            }
             else
                 Player2Slot.gameObject.SetActive(false);
         }
         if (Player5Slot != null)
         {
             if (player5 != null)
-                Player5Slot.GetComponent<PlayerSlotUi>().Populate(player5.Name.ToString(), player5.ActiveCombo, player5.Team);
+            {
+                var playerSlotUi = Player5Slot.GetComponent<PlayerSlotUi>();
+                playerSlotUi.Populate(player5.Name.ToString(), player5.ActiveCombo, player5.Team, GameLogic.IsPlayerTurn(player5.Id.ToString()));
+            }
             else
                 Player5Slot.gameObject.SetActive(false);
         }
@@ -159,12 +176,19 @@ public class GameUi : MonoBehaviour
 
     private void SetAvailableCombos()
     {
-        Utility.ClearTransform(AvailableCombos);
+        var localPlayer = Utility.FindLocalPlayer();
+        AvailableCombos.Clear();
         foreach (var combo in GameLogic.Combos)
         {
             var comboPanel = Instantiate(ComboPrefab, AvailableCombos);
-            comboPanel.GetComponent<ComboPanelUi>().Populate(combo);
-            comboPanel.GetComponent<ComboPanelUi>().OnClicked.AddListener(HandleComboClick);
+            var comboPanelUi = comboPanel.GetComponent<ComboPanelUi>();
+            comboPanelUi.Populate(combo);
+            comboPanelUi.OnClicked.AddListener(HandleComboClick);
+            if (localPlayer.HasCombo)
+                comboPanelUi.Disable();
+            else
+                comboPanelUi.Enable();
+
         }
     }
 
@@ -173,17 +197,19 @@ public class GameUi : MonoBehaviour
         DescriptionUi.gameObject.SetActive(true);
         DescriptionUi.Populate(combo);
     }
-/*
-    public void ShowCoinAnimation(Dictionary<MapArea, int> areas, UnityAction callbackWhenDone)
+
+    public void ShowMouseOverCoin(int value)
     {
-        foreach (var area in areas)
-        {
-            var coin = Instantiate(CoinPrefab, transform);
-            coin.transform.position = area.Key.transform.position;
-            coin.GetComponent<CoinUi>().Initialise(area.Value, CoinTarget.position);
-        }
-        callbackWhenDone();
-    }*/
+        MouseOverCoin.SetActive(true);
+        var cost = value < 0 ? value.ToString() : $"+{value}";
+        MouseOverCoinValue.text = cost;
+    }
+
+    public void HideMouseOverCoin()
+    {
+        MouseOverCoin.SetActive(false);
+    }
+
     public void ShowCoinAnimation(MapArea area, int value, bool ownCoins, UnityAction callbackWhenDone)
     {
         var coin = Instantiate(CoinPrefab, transform);
@@ -230,7 +256,7 @@ public class GameUi : MonoBehaviour
 
     private void SetPlayerCombo(PlayerBehaviour localPlayer)
     {
-        Utility.ClearTransform(LocalPlayerCombo);
+        LocalPlayerCombo.Clear();
         if (localPlayer.HasCombo)
         {
             var combo = localPlayer.ActiveCombo;
@@ -273,6 +299,13 @@ public class GameUi : MonoBehaviour
         var tokenStack = Instantiate(TokenStackPrefab, Tokens).GetComponent<TokenStackUi>();
         tokenStack.Populate(token);
         tokenStack.AttachToMouse();
+    }
+
+    public void ShowEndOfGame()
+    {
+        var leaderboard = FindObjectsOfType<PlayerBehaviour>().OrderByDescending(x => x.Coins);
+        EndScreenUi.gameObject.SetActive(true);
+        EndScreenUi.Populate(leaderboard);
     }
 
     public void ActionClicked()

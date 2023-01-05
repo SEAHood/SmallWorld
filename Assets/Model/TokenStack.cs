@@ -10,7 +10,8 @@ namespace Assets.Model
         public int Count { get; set; }
         public Team Team { get; set; }
         public bool Interactable { get; set; }
-        public NetworkString<_128> OwnerId { get; set; }
+        public NetworkString<_64> OwnerId { get; set; }
         public bool InPlay { get; set; }
+        public bool InDecline { get; set; }
     }
 }
