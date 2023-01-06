@@ -132,12 +132,34 @@ public class MapArea : NetworkBehaviour, IPointerEnterHandler, IPointerExitHandl
         else
         {
             var tokensToConquer = ConflictResolver.TokensForConquest(tokens.Value, this);
+            var canConquerWithoutDice = tokens.Value.Count >= tokensToConquer;
+            var hasChanceWithMinDice = tokens.Value.Count + 1 >= tokensToConquer; // Min dice roll is 1
             var validAreaToConquer = AreaResolver.CanUseArea(player, this, gameLogic.TurnStage);
+
+            if (validAreaToConquer && hasChanceWithMinDice)
+            {
+                // Enough to conquer
+                _goodBorder.enabled = true;
+                player.HoveredAreaConquerCost = tokensToConquer;
+                player.CanUseReinforcementDice = !canConquerWithoutDice; // TODO: << Berserk
+
+                Debug.Log($"Setting player.HoveredAreaConquestCost to {tokensToConquer}");
+            }
+            else
+            {
+                // Not enough tokens to conquer
+                _badBorder.enabled = true;
+                player.HoveredAreaConquerCost = 0;
+                player.CanUseReinforcementDice = false;
+                Debug.Log($"Setting player.HoveredAreaConquestCost to 0");
+            }
+/*
             if (tokens.Value.Count < tokensToConquer || !validAreaToConquer)
             {
                 // Not enough tokens to conquer
                 _badBorder.enabled = true;
                 player.HoveredAreaConquerCost = 0;
+                player.CanUseReinforcementDice = false;
                 Debug.Log($"Setting player.HoveredAreaConquestCost to 0");
             }
             else
@@ -146,7 +168,7 @@ public class MapArea : NetworkBehaviour, IPointerEnterHandler, IPointerExitHandl
                 _goodBorder.enabled = true;
                 player.HoveredAreaConquerCost = tokensToConquer;
                 Debug.Log($"Setting player.HoveredAreaConquestCost to {tokensToConquer}");
-            }
+            }*/
         }
     }
     

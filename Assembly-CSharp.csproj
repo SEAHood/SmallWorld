@@ -86,6 +86,7 @@
     <Compile Include="Assets\Helper\Extensions.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Utilities\FusionEditorUtilitiesExternal.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\FusionBurstIntegration.cs" />
+    <Compile Include="Assets\PlayerLeaderboardEntryUi.cs" />
     <Compile Include="Assets\Model\Race.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\ToggleRunnerProvideInput.cs" />
     <Compile Include="Assets\Repo\PowerRepo.cs" />
@@ -104,6 +105,7 @@
     <Compile Include="Assets\Helper\ConflictResolver.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\SpawnPoints\ISpawnPointPrototype.cs" />
     <Compile Include="Assets\PlayerBehaviour.cs" />
+    <Compile Include="Assets\EndScreenUi.cs" />
     <Compile Include="Assets\TextGrower.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\SpawnPoints\SpawnPointManagerPrototype.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\SpawnPoints\ISpawnPointManagerPrototypeT.cs" />
@@ -134,8 +136,6 @@
     <Compile Include="Assets\MapArea.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\Prototyping\ControllerPrototype.cs" />
     <Compile Include="Assets\Photon\Fusion\Scripts\FusionGraph.cs" />
-    <Compile Include="Assets\PlayerLeaderboardEntryUi.cs" />
-    <Compile Include="Assets\EndScreenUi.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

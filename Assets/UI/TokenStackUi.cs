@@ -20,6 +20,8 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
     public TextMeshProUGUI CountText;
     public GameObject StackTokenTemplatePrefab;
     public TokenStackUi ConquerCostStack;
+    public GameObject Dice;
+    public bool IsConquestStack;
 
     public string Race;
     public Team Team;
@@ -44,6 +46,9 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
         TeamTag.enabled = false;
         CountPanel.SetActive(false);
         Stack.gameObject.SetActive(false);
+
+        if (!IsConquestStack)
+            Dice.SetActive(false);
     }
 
     void FixedUpdate()
@@ -99,6 +104,7 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
             UpdateTeamTag();
             UpdateStack();
             UpdateConquerCostStack();
+            UpdateReinforcementDice();
             GenerateOffset();
         }
     }
@@ -141,6 +147,8 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
 
     private void UpdateConquerCostStack()
     {
+        if (IsConquestStack) return;
+
         // If we're not conquering, don't bother
         if (ConquerCostStack != null && (!_attachedToMouse || FindObjectOfType<GameLogic>().TurnStage != GameLogic.TurnState.Conquer))
         {
@@ -157,6 +165,12 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
             ConquerCostStack.Interactable = false;
             ConquerCostStack.Activate();
         }
+    }
+
+    private void UpdateReinforcementDice()
+    {
+        if (!IsConquestStack && _attachedToMouse) // Only show dice for the main stack, and if it's attached to the mouse
+            Dice.SetActive(Owner != null && Owner.CanUseReinforcementDice && Count > 0);
     }
 
     IEnumerator GenerateOffset()

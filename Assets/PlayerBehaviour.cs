@@ -23,6 +23,7 @@ public class PlayerBehaviour : NetworkBehaviour
     [Networked] public int ConquerOrderIx { get; set; }
     public TokenStack? ActiveTokenStack { get; set; }
     public int HoveredAreaConquerCost { get; set; }
+    public bool CanUseReinforcementDice { get; set; }
 
     private GameLogic _gameLogic;
 

@@ -309,8 +309,8 @@ public class GameLogic : NetworkBehaviour
         GeneratePlayerTurnOrder();
         GenerateCards();
         SpawnMap();
-        State = GameState.GameStarted;
-        StartCoroutine(DelayedTurnIncrement(0.5f));
+        StartCoroutine(DelayedAction(0.2f, () => State = GameState.GameStarted));
+        StartCoroutine(DelayedTurnIncrement(0.5f));        
     }
 
     private void DistributeCoins(int amount)
