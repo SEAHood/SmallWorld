@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using UnityEngine;
 
 namespace Assets.Helper
@@ -14,28 +15,23 @@ namespace Assets.Helper
                 if (mapArea.OccupyingForce.OwnerId == player.Id) // Can't conquer own land
                     return false;
 
-                if (mapArea.Biome == MapArea.AreaBiome.Sea)
-                    return player.ActiveCombo.Power.Name == "Seafaring";
+                if (player.ActiveCombo.Power.Name == "Flying")
+                    return true;
+
+                var ownsAdjacentArea = CheckForOwnedAdjacentArea(player, mapArea);
 
                 if (player.HasTokensInPlay)
                 {
-                    var adjacentAreas = mapArea.AdjacentAreas;
+                    if (mapArea.Biome == MapArea.AreaBiome.Sea)
+                        return ownsAdjacentArea && player.ActiveCombo.Power.Name == "Seafaring";
 
-                    // Add caverns as adjacent areas if player has Underworld power
-                    if (player.ActiveCombo.Power.Name == "Underworld" && mapArea.HasCavern)
-                        adjacentAreas.AddRange(GameObject.FindObjectsOfType<MapArea>().Where(x => x.Id != mapArea.Id && x.HasCavern).ToList());
-
-                    foreach (var area in mapArea.AdjacentAreas)
-                    {
-                        // TODO: Handle powers and races here, i.e. triton, dragon on area, etc
-                        if (area.OccupyingForce.OwnerId == player.Id)
-                            return true;
-                    }
-
-                    return false;
+                    return ownsAdjacentArea;
                 }
                 else
                 {
+                    if (mapArea.Biome == MapArea.AreaBiome.Sea)
+                        return mapArea.IsBorderArea && player.ActiveCombo.Power.Name == "Seafaring";
+
                     return mapArea.IsBorderArea;
                 }
             }
@@ -45,8 +41,25 @@ namespace Assets.Helper
             }
             else
             { 
-                return false; // This won't happen
+                return false; // This won't happen™
             }
+        }
+
+        private static bool CheckForOwnedAdjacentArea(PlayerBehaviour player, MapArea mapArea)
+        {
+            var adjacentAreas = mapArea.AdjacentAreas;
+
+            // Add caverns as adjacent areas if player has Underworld power
+            if (player.ActiveCombo.Power.Name == "Underworld" && mapArea.HasCavern)
+                adjacentAreas.AddRange(GameObject.FindObjectsOfType<MapArea>().Where(x => x.Id != mapArea.Id && x.HasCavern).ToList());
+
+            foreach (var area in adjacentAreas)
+            {
+                if (area.OccupyingForce.OwnerId == player.Id)
+                    return true;
+            }
+
+            return false;
         }
     }
 }

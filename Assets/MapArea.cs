@@ -133,15 +133,26 @@ public class MapArea : NetworkBehaviour, IPointerEnterHandler, IPointerExitHandl
         {
             var tokensToConquer = ConflictResolver.TokensForConquest(tokens.Value, this);
             var canConquerWithoutDice = tokens.Value.Count >= tokensToConquer;
-            var hasChanceWithMinDice = tokens.Value.Count + 1 >= tokensToConquer; // Min dice roll is 1
+            var hasChanceWithMaxDice = !player.HasUsedReinforcementDice && tokens.Value.Count + 3 >= tokensToConquer; // Max dice roll is 3
             var validAreaToConquer = AreaResolver.CanUseArea(player, this, gameLogic.TurnStage);
 
-            if (validAreaToConquer && hasChanceWithMinDice)
+            if (validAreaToConquer)
             {
                 // Enough to conquer
                 _goodBorder.enabled = true;
-                player.HoveredAreaConquerCost = tokensToConquer;
-                player.CanUseReinforcementDice = !canConquerWithoutDice; // TODO: << Berserk
+
+                if (hasChanceWithMaxDice)
+                {
+                    player.HoveredAreaConquerCost = tokensToConquer;
+                    player.CanUseReinforcementDice = !canConquerWithoutDice; // TODO: << Berserk
+                    player.HoveredAreaMinDiceRoll = tokensToConquer - tokens.Value.Count;
+                }
+                else
+                {
+                    player.HoveredAreaConquerCost = 0;
+                    player.CanUseReinforcementDice = false;
+                    player.HoveredAreaMinDiceRoll = 0;
+                }
 
                 Debug.Log($"Setting player.HoveredAreaConquestCost to {tokensToConquer}");
             }
@@ -151,24 +162,9 @@ public class MapArea : NetworkBehaviour, IPointerEnterHandler, IPointerExitHandl
                 _badBorder.enabled = true;
                 player.HoveredAreaConquerCost = 0;
                 player.CanUseReinforcementDice = false;
+                player.HoveredAreaMinDiceRoll = 0;
                 Debug.Log($"Setting player.HoveredAreaConquestCost to 0");
             }
-/*
-            if (tokens.Value.Count < tokensToConquer || !validAreaToConquer)
-            {
-                // Not enough tokens to conquer
-                _badBorder.enabled = true;
-                player.HoveredAreaConquerCost = 0;
-                player.CanUseReinforcementDice = false;
-                Debug.Log($"Setting player.HoveredAreaConquestCost to 0");
-            }
-            else
-            {
-                // Enough to conquer
-                _goodBorder.enabled = true;
-                player.HoveredAreaConquerCost = tokensToConquer;
-                Debug.Log($"Setting player.HoveredAreaConquestCost to {tokensToConquer}");
-            }*/
         }
     }
     
@@ -182,7 +178,8 @@ public class MapArea : NetworkBehaviour, IPointerEnterHandler, IPointerExitHandl
 
         var player = Utility.FindLocalPlayer();
         player.HoveredAreaConquerCost = 0;
-        Debug.Log($"Setting player.HoveredAreaConquestCost to 0");
+        player.CanUseReinforcementDice = false;
+        player.HoveredAreaMinDiceRoll = 0;
         _highlight.enabled = false;
         _goodBorder.enabled = false;
         _badBorder.enabled = false;
@@ -191,5 +188,14 @@ public class MapArea : NetworkBehaviour, IPointerEnterHandler, IPointerExitHandl
     public void OnPointerClick(PointerEventData eventData)
     {
         Utility.FindLocalPlayer().TryAffectMapArea(this);
+    }
+
+    public bool HasAdjacentBiome(AreaBiome biome)
+    {
+        foreach (var area in AdjacentAreas)
+        {
+            if (area.Biome == biome) return true;
+        }
+        return false;
     }
 }

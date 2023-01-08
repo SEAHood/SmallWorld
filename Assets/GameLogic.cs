@@ -114,8 +114,7 @@ public class GameLogic : NetworkBehaviour
             Debug.Log($"[SERVER] Action clicked. Player {PlayerTurn} turn on turn {Turn}. Turn stage: {TurnStage}");
             if (TurnStage == TurnState.Conquer)
             {
-                TurnStage = TurnState.Redeploy;
-                UndeployPlayerTokens(playerBehaviour);
+                GoToRedeployStage(playerBehaviour);
             }
             else if (TurnStage == TurnState.Redeploy)
             {
@@ -206,34 +205,44 @@ public class GameLogic : NetworkBehaviour
             var tokensForSuccess = ConflictResolver.TokensForConquest(playerToken, mapArea);
             var validAreaToConquer = AreaResolver.CanUseArea(playerBehaviour, mapArea, TurnStage);
             var isOwnedArea = mapArea.OccupyingForce.OwnerId == playerBehaviour.Id; // Can't conquer own area
+            var hasChanceWithMaxDice = playerToken.Count + 3 >= tokensForSuccess; // Max dice roll is 3
 
-            if (playerToken.Count < tokensForSuccess || !validAreaToConquer || isOwnedArea)
+            if (!validAreaToConquer || isOwnedArea)
                 return;
 
-            playerToken.Count = playerToken.Count - tokensForSuccess;
-            playerBehaviour.Tokens.Set(tokenKey, playerToken);
-
-            mapArea.OccupyingForce = new TokenStack
+            if (playerToken.Count < tokensForSuccess)
             {
-                Count = tokensForSuccess,
-                Interactable = false,
-                Power = playerBehaviour.ActiveCombo.Power,
-                Race = playerToken.Race,
-                Team = playerBehaviour.Team,
-                InPlay = true,
-                OwnerId = playerToken.OwnerId
-            };
-            mapArea.IsOccupied = true;
-            mapArea.ConquerOrder = playerBehaviour.ConquerOrderIx;
-            mapArea.ConqueredThisTurn = true;
-            playerBehaviour.ConquerOrderIx++;
-            MapAreas.Set(areaId, mapArea);
+                if (hasChanceWithMaxDice && !playerBehaviour.HasUsedReinforcementDice)
+                {
+                    int[] chances = new int[6] { 0, 0, 0, 1, 2, 3 };
+                    var roll = chances[UnityEngine.Random.Range(0, chances.Length)];
+                    tokensForSuccess -= roll;
+                    tokensForSuccess = Math.Max(1, tokensForSuccess);
+                    foreach (var p in _players)
+                    {
+                        var b = GetPlayerBehaviour(p);
+                        b.RPC_NotifyDiceRoll(roll);
+                    }
 
-            if (playerToken.Count <= 0)
-                playerBehaviour.Tokens.Remove(tokenKey);
+                    if (playerToken.Count >= tokensForSuccess) // Roll passed - all troops conquer region
+                        StartCoroutine(DelayedAction(2f, () => 
+                        {
+                            playerBehaviour.RPC_NotifyRollSuccess();
+                            ConquerMapArea(ref playerBehaviour, ref playerToken, ref mapArea, playerToken.Count);
+                        }));
+                    else
+                        StartCoroutine(DelayedAction(2f, () => GoToRedeployStage(playerBehaviour)));
 
-            playerBehaviour.HasTokensInPlay = true;
-            playerBehaviour.RPC_RefreshActiveTokenStack();
+                    playerBehaviour.HasUsedReinforcementDice = true;
+                    return;
+                }
+                else 
+                { 
+                    return;
+                }
+            }
+
+            ConquerMapArea(ref playerBehaviour, ref playerToken, ref mapArea, tokensForSuccess);
         }
     }
 
@@ -309,8 +318,10 @@ public class GameLogic : NetworkBehaviour
         GeneratePlayerTurnOrder();
         GenerateCards();
         SpawnMap();
-        StartCoroutine(DelayedAction(0.2f, () => State = GameState.GameStarted));
-        StartCoroutine(DelayedTurnIncrement(0.5f));        
+        IncrementPlayerTurn();
+        State = GameState.GameStarted;
+        /*StartCoroutine(DelayedAction(0.2f, () => State = GameState.GameStarted));
+        StartCoroutine(DelayedTurnIncrement(0.5f));        */
     }
 
     private void DistributeCoins(int amount)
@@ -331,6 +342,42 @@ public class GameLogic : NetworkBehaviour
             if (b.Id != player.Id)
                 b.RPC_NotifyAreaTokens(area.Id, value);
         }
+    }
+
+    private void GoToRedeployStage(PlayerBehaviour playerBehaviour)
+    {
+        TurnStage = TurnState.Redeploy;
+        UndeployPlayerTokens(playerBehaviour);
+    }
+
+    private void ConquerMapArea(ref PlayerBehaviour playerBehaviour, ref TokenStack playerToken, ref MapArea mapArea, int tokensForSuccess)
+    {
+        var tokenKey = playerToken.Race.Name.ToString();
+        var areaId = mapArea.Id;
+        playerToken.Count = playerToken.Count - tokensForSuccess;
+        playerBehaviour.Tokens.Set(tokenKey, playerToken);
+
+        mapArea.OccupyingForce = new TokenStack
+        {
+            Count = tokensForSuccess,
+            Interactable = false,
+            Power = playerBehaviour.ActiveCombo.Power,
+            Race = playerToken.Race,
+            Team = playerBehaviour.Team,
+            InPlay = true,
+            OwnerId = playerToken.OwnerId
+        };
+        mapArea.IsOccupied = true;
+        mapArea.ConquerOrder = playerBehaviour.ConquerOrderIx;
+        mapArea.ConqueredThisTurn = true;
+        playerBehaviour.ConquerOrderIx++;
+        MapAreas.Set(areaId, mapArea);
+
+        if (playerToken.Count <= 0)
+            playerBehaviour.Tokens.Remove(tokenKey);
+
+        playerBehaviour.HasTokensInPlay = true;
+        playerBehaviour.RPC_RefreshActiveTokenStack();
     }
 
     private void GenerateCards()
@@ -418,6 +465,10 @@ public class GameLogic : NetworkBehaviour
             {
                 tempTurn++;
                 tempPlayerTurn = 0;
+                foreach (var p in _players)
+                {
+                    GetPlayerBehaviour(p).HasUsedReinforcementDice = false;
+                }
             }
         }
 
@@ -653,4 +704,11 @@ public class GameLogic : NetworkBehaviour
 
 
     #endregion
+
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Alpha0))
+            FindObjectOfType<DiceRoller>().Initialise(UnityEngine.Random.Range(0, 4));
+    }
 }

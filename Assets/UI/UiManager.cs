@@ -61,11 +61,11 @@ public class UiManager : MonoBehaviour
     public void GoToGame(int playerCount)
     {
         Debug.Log($"GoToGame({playerCount})");
-        SetActiveUi(ActiveUi.Game, playerCount);
         if (playerCount == 1 || playerCount == 2 || playerCount == 3)
             RectLayoutUi.GetComponent<GameUi>().Initialise();
         else if (playerCount == 4 || playerCount == 5)
             SquareLayoutUi.GetComponent<GameUi>().Initialise();
+        SetActiveUi(ActiveUi.Game, playerCount);
     }
 
     private void SetActiveUi(ActiveUi targetState, int playerCount = 0)

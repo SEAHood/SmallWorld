@@ -21,9 +21,11 @@ public class PlayerBehaviour : NetworkBehaviour
     [Networked] public int Coins { get; set; }
     [Networked] public bool HasTokensInPlay { get; set; }
     [Networked] public int ConquerOrderIx { get; set; }
+    [Networked] public bool HasUsedReinforcementDice { get; set; }
     public TokenStack? ActiveTokenStack { get; set; }
     public int HoveredAreaConquerCost { get; set; }
     public bool CanUseReinforcementDice { get; set; }
+    public int HoveredAreaMinDiceRoll { get; set; }
 
     private GameLogic _gameLogic;
 
@@ -130,6 +132,18 @@ public class PlayerBehaviour : NetworkBehaviour
     public void RPC_NotifyEndOfGame()
     {
         FindObjectOfType<GameUi>().ShowEndOfGame();
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
+    public void RPC_NotifyDiceRoll(int roll)
+    {
+        FindObjectOfType<DiceRoller>().Initialise(roll);
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
+    public void RPC_NotifyRollSuccess()
+    {
+        FindObjectOfType<SoundManager>().PlayByeah();
     }
 
     [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]

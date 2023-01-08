@@ -1,3 +1,5 @@
+using Assets.Helper;
+using Assets.Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,11 +15,13 @@ public class DebugUi : MonoBehaviour
 
     private bool _visible = true;
     private GameLogic _gameLogic;
+    private PlayerBehaviour _localPlayer;
     private List<UnityAction> _propertyUpdaters = new List<UnityAction>();
 
     void Start()
     {
         _gameLogic = FindObjectOfType<GameLogic>();
+        _localPlayer = Utility.FindLocalPlayer();
 
         ConfigureHeader("GameLogic");
         ConfigureEntry("State", () => _gameLogic.GetState());
@@ -30,8 +34,22 @@ public class DebugUi : MonoBehaviour
         ConfigureEntry("MapAreas (count)", () => _gameLogic.GetMapAreaCount());
         ConfigureEntry("Players (count)", () => _gameLogic.GetPlayerCountStr());
 
+        ConfigureHeader("PlayerBehaviour (local)");
+        ConfigureEntry("ATS (count)", () => GetPlayerActiveTokenStack().HasValue ? GetPlayerActiveTokenStack().Value.Count.ToString() : "N/A");
+        ConfigureEntry("ATS (race)", () => GetPlayerActiveTokenStack().HasValue ? GetPlayerActiveTokenStack().Value.Race.Name.ToString() : "N/A");
+        ConfigureEntry("HasUsedReinforcementDice", () => _localPlayer?.HasUsedReinforcementDice.ToString());
+        ConfigureEntry("HoveredAreaConquerCost", () => _localPlayer?.HoveredAreaConquerCost.ToString());
+        ConfigureEntry("CanUseReinforcementDice", () => _localPlayer?.CanUseReinforcementDice.ToString());
+        ConfigureEntry("HoveredAreaMinDiceRoll", () => _localPlayer?.HoveredAreaMinDiceRoll.ToString());
+
         if (!Debug.isDebugBuild)
             Disable();
+    }
+
+    private TokenStack? GetPlayerActiveTokenStack()
+    {
+        if (_localPlayer == null || !_localPlayer.ActiveTokenStack.HasValue) return null;
+        return _localPlayer.ActiveTokenStack;
     }
 
     void Update()
@@ -40,6 +58,9 @@ public class DebugUi : MonoBehaviour
             ToggleVisibility();
 
         if (!_visible) return;
+
+        if (_localPlayer == null)
+            _localPlayer = Utility.FindLocalPlayer();
 
         foreach (var updater in _propertyUpdaters)
         {

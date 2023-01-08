@@ -274,8 +274,11 @@ public class GameUi : MonoBehaviour
             if (localPlayer.Tokens.TryGet(tokenUi.Race, out var playerToken))
             {
                 var playerTokenCount = playerToken.Count;
-                if (playerTokenCount > 0)
+                if (playerTokenCount > 0) 
+                {
+                    tokenUi.Token = playerToken;
                     tokenUi.Count = playerTokenCount;
+                }
                 else
                     Destroy(tokenUi.gameObject);
             }

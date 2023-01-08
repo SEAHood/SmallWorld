@@ -29,11 +29,14 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
     public PlayerBehaviour Owner;
     public TokenStack Token;
 
+    private GameLogic _gameLogic;
+
     private string _lastRace;
     private int _lastCount;
     private int? _lastHoverCost;
     private Team _lastTeam;
     private bool _lastAttachedToMouse;
+    private GameLogic.TurnState _lastTurnStage;
 
     private Vector3 _originalPosition;
     private bool _attachedToMouse;
@@ -41,6 +44,7 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
 
     void Start()
     {
+        _gameLogic = FindObjectOfType<GameLogic>();
         _originalPosition = transform.position;
         MainToken.enabled = false;
         TeamTag.enabled = false;
@@ -73,12 +77,13 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
     {
         if (!Interactable) return;
 
-        if (Input.GetMouseButtonDown(1))
+        if (Input.GetMouseButtonDown(1) || _lastTurnStage != _gameLogic.TurnStage)
         {
             _attachedToMouse = false;
             GetComponent<Image>().raycastTarget = true;
             Owner.ActiveTokenStack = null;
         }
+        _lastTurnStage = _gameLogic.TurnStage;
 
         if (_attachedToMouse)
             transform.position = Input.mousePosition;
@@ -169,8 +174,16 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
 
     private void UpdateReinforcementDice()
     {
-        if (!IsConquestStack && _attachedToMouse) // Only show dice for the main stack, and if it's attached to the mouse
+        // Only show dice for the main stack
+        if (IsConquestStack) return;
+
+        if (_attachedToMouse) // Only show if it's attached to the mouse
+        {
             Dice.SetActive(Owner != null && Owner.CanUseReinforcementDice && Count > 0);
+            Dice.GetComponent<Image>().sprite = Resources.Load<Sprite>($"Dice/dice{Owner.HoveredAreaMinDiceRoll}");
+        }
+        else
+            Dice.SetActive(false);
     }
 
     IEnumerator GenerateOffset()
