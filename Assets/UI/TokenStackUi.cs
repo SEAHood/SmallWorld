@@ -28,6 +28,7 @@ public class TokenStackUi : MonoBehaviour, IPointerDownHandler
     [Min(1)] public int Count;
     public PlayerBehaviour Owner;
     public TokenStack Token;
+    public bool IsSpecialToken;
 
     private GameLogic _gameLogic;
 

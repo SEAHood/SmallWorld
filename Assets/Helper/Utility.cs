@@ -26,6 +26,7 @@ namespace Assets.Helper
 
         public static void UiUpdateRequired(bool newTurn = false, bool newPlayerTurn = false)
         {
+            Debug.Log("UI update required...");
             foreach (var area in GameObject.FindObjectsOfType<MapArea>())
             {
                 area.RefreshMapArea();

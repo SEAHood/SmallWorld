@@ -46,7 +46,7 @@ public class GameLogic : NetworkBehaviour
     private NetworkManager _networkManager;
     [HideInInspector] public int LastTurn = 0;
     private bool _gameIsOver;
-    private int _maxTurns = 2;
+    private int _maxTurns = 10;
 
     // Cards
     private ComboRepo _combos = new ComboRepo();
@@ -99,6 +99,7 @@ public class GameLogic : NetworkBehaviour
                 Interactable = true,
                 OwnerId = playerBehaviour.Id
             };
+            playerBehaviour.Tokens.Clear();
             playerBehaviour.Tokens.Add(serverCombo.Race.Name, tokenStack);
 
             RefillCombos();
@@ -142,13 +143,33 @@ public class GameLogic : NetworkBehaviour
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     internal void RPC_Decline(PlayerBehaviour playerBehaviour)
     {
-        if (!IsPlayerTurn(playerBehaviour.Id.ToString())) return;
+        if (!playerBehaviour.HasCombo ||
+            !IsPlayerTurn(playerBehaviour.Id.ToString()) || 
+            TurnStage != GameLogic.TurnState.Conquer ||
+            playerBehaviour.HasPerformedActionThisTurn) return;
 
+        // Wipe out old in-decline tokens
         foreach (var mapArea in MapAreas)
         {
-            if (mapArea.Value.OccupyingForce.OwnerId == playerBehaviour.Id)
+            var occupyingForce = mapArea.Value.OccupyingForce;
+            if (occupyingForce.OwnerId == playerBehaviour.Id && occupyingForce.InDecline && occupyingForce.Power.Name != "Spirit")
             {
-                var occupyingForce = mapArea.Value.OccupyingForce;
+                Debug.Log($"Removing existing in-decline token on {mapArea.Value.gameObject.name}");
+                mapArea.Value.IsOccupied = false;
+                /*occupyingForce.Count = 0;
+                occupyingForce.Interactable = false;
+                mapArea.Value.OccupyingForce = occupyingForce;*/
+                MapAreas.Set(mapArea.Key, mapArea.Value);
+            }
+        }
+
+        // Set new in-decline tokens
+        foreach (var mapArea in MapAreas)
+        {
+            var occupyingForce = mapArea.Value.OccupyingForce;
+            if (occupyingForce.OwnerId == playerBehaviour.Id)
+            {
+                Debug.Log($"Setting in-decline on {mapArea.Value.gameObject.name}");
                 occupyingForce.Count = 1;
                 occupyingForce.InDecline = true;
                 mapArea.Value.OccupyingForce = occupyingForce;
@@ -157,6 +178,7 @@ public class GameLogic : NetworkBehaviour
         }
 
         playerBehaviour.HasCombo = false;
+        playerBehaviour.HasActiveTokensInPlay = false;
         playerBehaviour.Tokens.Clear();
         IncrementPlayerTurn();
         Debug.Log("[SERVER] RPC_Decline called");
@@ -314,14 +336,15 @@ public class GameLogic : NetworkBehaviour
         PlayerCount = Runner.ActivePlayers.Count();
         Turn = 0;
         _players = Runner.ActivePlayers.ToList();
-        DistributeCoins(7);
+        DistributeCoins(5);
         GeneratePlayerTurnOrder();
         GenerateCards();
         SpawnMap();
-        IncrementPlayerTurn();
-        State = GameState.GameStarted;
+        State = GameState.GameStarted; 
+        StartCoroutine(DelayedTurnIncrement(0.2f));
+        //IncrementPlayerTurn();
         /*StartCoroutine(DelayedAction(0.2f, () => State = GameState.GameStarted));
-        StartCoroutine(DelayedTurnIncrement(0.5f));        */
+        StartCoroutine(DelayedTurnIncrement(0.5f));      */  
     }
 
     private void DistributeCoins(int amount)
@@ -346,6 +369,7 @@ public class GameLogic : NetworkBehaviour
 
     private void GoToRedeployStage(PlayerBehaviour playerBehaviour)
     {
+        // TODO Skeletons
         TurnStage = TurnState.Redeploy;
         UndeployPlayerTokens(playerBehaviour);
     }
@@ -356,6 +380,8 @@ public class GameLogic : NetworkBehaviour
         var areaId = mapArea.Id;
         playerToken.Count = playerToken.Count - tokensForSuccess;
         playerBehaviour.Tokens.Set(tokenKey, playerToken);
+
+        // TODO: Check if this was the final in decline token of a player and set HasTokensInDecline
 
         mapArea.OccupyingForce = new TokenStack
         {
@@ -376,7 +402,8 @@ public class GameLogic : NetworkBehaviour
         if (playerToken.Count <= 0)
             playerBehaviour.Tokens.Remove(tokenKey);
 
-        playerBehaviour.HasTokensInPlay = true;
+        playerBehaviour.HasActiveTokensInPlay = true;
+        playerBehaviour.HasPerformedActionThisTurn = true;
         playerBehaviour.RPC_RefreshActiveTokenStack();
     }
 
@@ -467,7 +494,9 @@ public class GameLogic : NetworkBehaviour
                 tempPlayerTurn = 0;
                 foreach (var p in _players)
                 {
-                    GetPlayerBehaviour(p).HasUsedReinforcementDice = false;
+                    var pb = GetPlayerBehaviour(p);
+                    pb.HasUsedReinforcementDice = false;
+                    pb.HasPerformedActionThisTurn = false;
                 }
             }
         }
@@ -585,7 +614,7 @@ public class GameLogic : NetworkBehaviour
 
     public PlayerBehaviour GetCurrentPlayerTurn()
     {
-        return GetPlayerBehaviour(Runner.ActivePlayers.FirstOrDefault(x => GetPlayerBehaviour(x).Id == PlayerTurnId));
+        return GetPlayerBehaviour(Runner.ActivePlayers.FirstOrDefault(x => GetPlayerBehaviour(x)?.Id == PlayerTurnId));
     }
 
     public bool IsPlayerTurn(string id)

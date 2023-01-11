@@ -44,17 +44,20 @@ public class GameUi : MonoBehaviour
     private List<PlayerBehaviour> _otherPlayers;
     private bool _actionInProgress;
 
-    public void Initialise()
+    public void Initialise(bool gameStart = false)
     {
+        Debug.Log("Initialising GameUI");
         _localPlayer = Utility.FindLocalPlayer();
         _otherPlayers = Utility.FindOtherPlayers();
         if (_localPlayer == null) throw new Exception("[CRITICAL] There is no local player, cannot proceed with GameUi initialisation");
         DescriptionUi.gameObject.SetActive(false);
         EndScreenUi.gameObject.SetActive(false);
+        RefreshUi(gameStart, gameStart);
     }
 
     public void RefreshUi(bool newTurn, bool newPlayerTurn)
     {
+        Debug.Log("GameUI.RefreshUI called");
         if (_localPlayer == null)
             Initialise();
 
@@ -72,7 +75,7 @@ public class GameUi : MonoBehaviour
             CenterTextGrower.ShowText(GameLogic.Turn == 1 ? "Game Start" : "New Turn", () => CenterTextGrower.ShowText($"{GameLogic.GetCurrentPlayerTurn().Name}", null));
         }
         else if (newPlayerTurn)
-        {            
+        {
             CenterTextGrower.ShowText($"{GameLogic.GetCurrentPlayerTurn().Name}", null);
         }
     }
@@ -159,7 +162,11 @@ public class GameUi : MonoBehaviour
                     actionText.text = "Redeploy";
                     break;
             }
-            declineImage.sprite = Resources.Load<Sprite>("Buttons/DeclineOn");
+
+            if (GameLogic.TurnStage == GameLogic.TurnState.Conquer && localPlayer.HasCombo && !localPlayer.HasPerformedActionThisTurn)
+                declineImage.sprite = Resources.Load<Sprite>("Buttons/DeclineOn");
+            else
+                declineImage.sprite = Resources.Load<Sprite>("Buttons/DeclineOff");
         }
         else
         {

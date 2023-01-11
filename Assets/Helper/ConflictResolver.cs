@@ -18,7 +18,11 @@ namespace Assets.Helper
 
             var cost = 2;
             cost += mapArea.OccupyingForce.Count;
-            // TODO Add HasEncampmentToken, HasFortressToken, HasMountainToken, HasTrollLairToken to MapArea
+
+            if (mapArea.Biome == MapArea.AreaBiome.Mountain)
+                cost += 1;
+
+            // TODO Add HasEncampmentToken, HasFortressToken, HasTrollLairToken to MapArea
 
             #region Powers
 

@@ -20,7 +20,7 @@ namespace Assets.Helper
 
                 var ownsAdjacentArea = CheckForOwnedAdjacentArea(player, mapArea);
 
-                if (player.HasTokensInPlay)
+                if (player.HasActiveTokensInPlay)
                 {
                     if (mapArea.Biome == MapArea.AreaBiome.Sea)
                         return ownsAdjacentArea && player.ActiveCombo.Power.Name == "Seafaring";

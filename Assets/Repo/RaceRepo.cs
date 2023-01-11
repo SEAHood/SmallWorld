@@ -1,4 +1,5 @@
 ﻿using Assets.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,7 +25,7 @@ namespace Assets.Repo
             var nums = Enumerable.Range(0, AvailableRaces.Count).ToArray();
             for (var i = 0; i < nums.Length; ++i)
             {
-                var randomIndex = Random.Range(0, nums.Length);
+                var randomIndex = UnityEngine.Random.Range(0, nums.Length);
                 var temp = nums[randomIndex];
                 nums[randomIndex] = nums[i];
                 nums[i] = temp;
@@ -48,20 +49,34 @@ namespace Assets.Repo
 
         private List<Race> AllRaces = new List<Race>
         {
-            new Race { Name = "Amazon", Tokens = 6 },
+            new Race { Id = Guid.NewGuid().ToString(), Name = "Ratmen", Tokens = 8 },
+            new Race { Id = Guid.NewGuid().ToString(), Name = "Ratmen", Tokens = 8 },
+            new Race { Id = Guid.NewGuid().ToString(), Name = "Ratmen", Tokens = 8 },
+            new Race { Id = Guid.NewGuid().ToString(), Name = "Ratmen", Tokens = 8 },
+            new Race { Id = Guid.NewGuid().ToString(), Name = "Ratmen", Tokens = 8 },
+            new Race { Id = Guid.NewGuid().ToString(), Name = "Ratmen", Tokens = 8 },
+            new Race { Id = Guid.NewGuid().ToString(), Name = "Ratmen", Tokens = 8 },
+            new Race { Id = Guid.NewGuid().ToString(), Name = "Ratmen", Tokens = 8 },
+            new Race { Id = Guid.NewGuid().ToString(), Name = "Ratmen", Tokens = 8 },
+            new Race { Id = Guid.NewGuid().ToString(), Name = "Ratmen", Tokens = 8 },
+            new Race { Id = Guid.NewGuid().ToString(), Name = "Ratmen", Tokens = 8 },
+            new Race { Id = Guid.NewGuid().ToString(), Name = "Ratmen", Tokens = 8 },
+            new Race { Id = Guid.NewGuid().ToString(), Name = "Ratmen", Tokens = 8 },
+            new Race { Id = Guid.NewGuid().ToString(), Name = "Ratmen", Tokens = 8 },
+            /*//new Race { Name = "Amazon", Tokens = 6 },
             new Race { Name = "Dwarf", Tokens = 3 },
-            new Race { Name = "Elf", Tokens = 6 },
-            new Race { Name = "Ghoul", Tokens = 5 },
+            //new Race { Name = "Elf", Tokens = 6 },
+            //new Race { Name = "Ghoul", Tokens = 5 },
             new Race { Name = "Giant", Tokens = 6 },
-            new Race { Name = "Halfling", Tokens = 6 },
+            //new Race { Name = "Halfling", Tokens = 6 },
             new Race { Name = "Human", Tokens = 5 },
             new Race { Name = "Orc", Tokens = 5 },
             new Race { Name = "Ratmen", Tokens = 8 },
-            new Race { Name = "Skeleton", Tokens = 6 },
-            new Race { Name = "Sorcerer", Tokens = 5 },
+            //new Race { Name = "Skeleton", Tokens = 6 },
+            //new Race { Name = "Sorcerer", Tokens = 5 },
             new Race { Name = "Triton", Tokens = 6 },
-            new Race { Name = "Troll", Tokens = 5 },
-            new Race { Name = "Wizard", Tokens = 5 },
+            //new Race { Name = "Troll", Tokens = 5 },
+            new Race { Name = "Wizard", Tokens = 5 },*/
         };
 
 }

@@ -21,46 +21,57 @@ namespace Assets.Helper
         public static int CalculatePlayerMapAreaCoins(PlayerBehaviour player, MapArea area)
         {
             var coins = 1;
+            var tokenRace = area.OccupyingForce.Race.Name.ToString();
+            var tokenPower = area.OccupyingForce.Power.Name.ToString();
 
-            // Race area modifiers
-            switch (player.ActiveCombo.Race.Name.ToString())
+            if (!area.OccupyingForce.InDecline)
             {
-                case "Dwarf" when area.HasMine:
-                    coins += 1;
-                    break;
-                case "Human" when area.Biome == MapArea.AreaBiome.Farm:
-                    coins += 1;
-                    break;
-                case "Wizard" when area.HasMagic:
-                    coins += 1;
-                    break;
-                case "Orc" when area.ConqueredThisTurn && area.WasOccupied:
-                    coins += 1;
-                    break;
-                default:
-                    break;
+                // Race area modifiers
+                switch (tokenRace)
+                {
+                    case "Dwarf" when area.HasMine:
+                        coins += 1;
+                        break;
+                    case "Human" when area.Biome == MapArea.AreaBiome.Farm:
+                        coins += 1;
+                        break;
+                    case "Wizard" when area.HasMagic:
+                        coins += 1;
+                        break;
+                    case "Orc" when area.ConqueredThisTurn && area.WasOccupied:
+                        coins += 1;
+                        break;
+                    default:
+                        break;
+                }
+
+                // Power area modifiers
+                switch (tokenPower)
+                {
+                    case "Forest" when area.Biome == MapArea.AreaBiome.Forest:
+                        coins += 1;
+                        break;
+                    case "Hill" when area.Biome == MapArea.AreaBiome.Hills:
+                        coins += 1;
+                        break;
+                    case "Swamp" when area.Biome == MapArea.AreaBiome.Swamp:
+                        coins += 1;
+                        break;
+                    case "Pillaging" when area.ConqueredThisTurn && area.WasOccupied:
+                        coins += 1;
+                        break;
+                    case "Merchant":
+                        coins += 1;
+                        break;
+                    default:
+                        break;
+                }
             }
-
-            // Power area modifiers
-            switch (player.ActiveCombo.Power.Name.ToString())
+            else 
             {
-                case "Forest" when area.Biome == MapArea.AreaBiome.Forest:
+                // Tokens are in decline
+                if (tokenRace == "Dwarf" && area.HasMine)
                     coins += 1;
-                    break;
-                case "Hill" when area.Biome == MapArea.AreaBiome.Hills:
-                    coins += 1;
-                    break;
-                case "Swamp" when area.Biome == MapArea.AreaBiome.Swamp:
-                    coins += 1;
-                    break;
-                case "Pillaging" when area.ConqueredThisTurn && area.WasOccupied:
-                    coins += 1;
-                    break;
-                case "Merchant":
-                    coins += 1;
-                    break;
-                default:
-                    break;
             }
 
             return coins;
@@ -70,7 +81,7 @@ namespace Assets.Helper
         {
             var coins = 0;
 
-            if (player.ActiveCombo.Power.Name == "Wealthy" && turn == 1)
+            if (player.ActiveCombo.Power.Name == "Wealthy" && turn == 1) // TODO this needs to be first turn you HAVE the combo, not turn 1
                 coins += 7;
 
             if (player.ActiveCombo.Power.Name == "Alchemist" && ownedAreas.Count() > 0)

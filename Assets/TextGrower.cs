@@ -13,7 +13,7 @@ public class TextGrower : MonoBehaviour
     private Vector3 _originalScale;
     private bool _animating;
 
-    void Start()
+    void Awake()
     {
         _text = GetComponent<TextMeshProUGUI>();
         _originalScale = transform.localScale;

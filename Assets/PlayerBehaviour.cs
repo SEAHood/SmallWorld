@@ -14,14 +14,14 @@ public class PlayerBehaviour : NetworkBehaviour
     [Networked] public NetworkString<_64> Id { get; set; }
     [Networked] public NetworkString<_16> Name { get; set; }
     [Networked] public Team Team { get; set; }
-    //[Networked] public bool IsTurnActive { get; set; }
     [Networked(OnChanged = nameof(UiUpdateRequired)), Capacity(2)] public NetworkDictionary<NetworkString<_16>, TokenStack> Tokens => default;
     [Networked(OnChanged = nameof(UiUpdateRequired))] public Combo ActiveCombo { get; set; }
     [Networked(OnChanged = nameof(HasComboChanged))] public NetworkBool HasCombo { get; set; }
     [Networked] public int Coins { get; set; }
-    [Networked] public bool HasTokensInPlay { get; set; }
+    [Networked] public bool HasActiveTokensInPlay { get; set; }
     [Networked] public int ConquerOrderIx { get; set; }
     [Networked] public bool HasUsedReinforcementDice { get; set; }
+    [Networked] public bool HasPerformedActionThisTurn { get; set; }
     public TokenStack? ActiveTokenStack { get; set; }
     public int HoveredAreaConquerCost { get; set; }
     public bool CanUseReinforcementDice { get; set; }
@@ -163,7 +163,7 @@ public class PlayerBehaviour : NetworkBehaviour
 
     public void TryDecline()
     {
-        if (IsOwnTurn())
+        if (IsOwnTurn() && _gameLogic.TurnStage == GameLogic.TurnState.Conquer)
         {
             _gameLogic.RPC_Decline(this);
         }

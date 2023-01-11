@@ -77,7 +77,7 @@ public class MapArea : NetworkBehaviour, IPointerEnterHandler, IPointerExitHandl
             {
                 _instantiatedToken.Populate(OccupyingForce);
             }
-            else if (IsLostTribeSpawn)
+            else if (IsLostTribeSpawn && !WasOccupied)
             {
                 //Utility.ClearTransform(_tokenPosition);
                 var token = new TokenStack
@@ -91,6 +91,19 @@ public class MapArea : NetworkBehaviour, IPointerEnterHandler, IPointerExitHandl
                 _instantiatedToken.Populate(token);
                 OccupyingForce = token;
                 IsOccupied = true;
+            }
+            else
+            {
+                var token = new TokenStack
+                {
+                    Race = new Race { Name = "Empty" },
+                    Count = 0,
+                    Interactable = false,
+                    Team = Team.None,
+                    OwnerId = null
+                };
+                _instantiatedToken.Populate(token);
+                OccupyingForce = token;
             }
         }
 
